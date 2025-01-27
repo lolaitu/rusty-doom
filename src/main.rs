@@ -7,7 +7,7 @@ use std::io::{Write, stdout};
 
 
 fn fragment(uv: [f32; 2], time: f32) -> [f32; 3] {
-    [uv[0], uv[1], time % 1.]
+    [uv[1], uv[0], time % 1.]
 }
 
 fn main() {
