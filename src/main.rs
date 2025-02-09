@@ -1,28 +1,26 @@
-use std::io::{stdout, Stdout, Write};
+use std::io::{stdout, Stdout, Write, Result};
 use std::time::Duration;
-use crossterm;
+use crossterm::{
+    cursor::{Hide, Show},
+    event::{self, poll, Event, KeyCode},
+    terminal::{self, EnterAlternateScreen, LeaveAlternateScreen},
+    ExecutableCommand,
+};
 
-fn main() {
-    let mut stdout: Stdout = stdout();
+fn main() -> Result<()> {
 
-    // Activer le mode brut du terminal
-    terminal::enable_raw_mode();
-    stdout.execute(EnterAlternateScreen);
-    stdout.execute(Hide);
+    let write = io::Stdout().unwrap();
 
-    loop {
-        if poll(Duration::from_millis(500)) {
-            if let Event::Key(event) = event::read() {
-                if event.code == KeyCode::Char('q') {
-                    break;
-                }
-            }
-        }
-        stdout.flush();
+    !queue(
+        write,
+        EnterAlternateScreen,
+        Hide
+    )?;
+
+    for i in 1..10 {
+        !queue(write, )
     }
 
-    // Désactivation propre du mode brut
-    stdout.execute(Show);
-    stdout.execute(LeaveAlternateScreen);
-    terminal::disable_raw_mode();
+
+    Ok(())
 }
