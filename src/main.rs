@@ -3,7 +3,7 @@ use std::time::Duration;
 use crossterm::{
     queue, execute,
     cursor::{Hide, Show, MoveTo},
-    event::{self, Event, KeyCode},
+    event::{self, Event, KeyCode, KeyModifiers},
     style::Print,
     terminal::{self, EnterAlternateScreen, LeaveAlternateScreen},
 };
@@ -18,26 +18,25 @@ fn main() -> Result<()> {
         Hide
     )?;
 
-    for j in 0..terminal::size().unwrap().1 {
-        for i in 0..terminal::size().unwrap().0 {
-            queue!(write,
-                MoveTo(i, j),
-                Print('#')
-            )?;
-        }
-    }
-
-    /*queue!(write,
-        MoveTo(0, 2),
-        Print("press q to quit")
-    )?;*/
-
-    write.flush()?;
-
     loop {
+
+        for j in 0..terminal::size().unwrap().1 {
+            for i in 0..terminal::size().unwrap().0 {
+                queue!(write,
+                    MoveTo(i, j),
+                    SetBackgroundColor(Color(Rgb())),
+                    Print('#')
+                )?;
+            }
+        }
+
+        write.flush()?;
+
         if event::poll(Duration::from_millis(50)).unwrap() {
             if let Event::Key(key_event) = event::read().unwrap() {
-                if key_event.code == KeyCode::Char('q') {
+                if key_event.code == KeyCode::Char('c') &&
+                   key_event.modifiers.contains(KeyModifiers::CONTROL)
+                {
                     break;
                 }
             }
