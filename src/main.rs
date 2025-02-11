@@ -1,53 +1,53 @@
-extern crate termion;
+use std::io::{Write, Result};
+use std::time::Duration;
+use crossterm::{
+    queue, execute,
+    cursor::{Hide, Show, MoveTo},
+    event::{self, Event, KeyCode, KeyModifiers},
+    style::Print,
+    terminal::{self, EnterAlternateScreen, LeaveAlternateScreen},
+};
 
-use std::{thread, time};
-use termion::{clear, color, cursor, terminal_size};
-use termion::raw::IntoRawMode;
-use std::io::{Write, stdout};
+fn main() -> Result<()> {
 
+    let mut write = std::io::stdout();
 
-fn fragment(uv: [f32; 2], time: f32) -> [f32; 3] {
-    [uv[1], uv[0], time % 1.]
-}
-
-fn main() {
-    println!("{}", clear::All);
-    let mut timer: f32 = 0.;
-
-    // let mut stdout = stdout().into_raw_mode().unwrap();
-    // write!(stdout, "Hey there.").unwrap();
+    terminal::enable_raw_mode()?;
+    execute!(write,
+        EnterAlternateScreen,
+        Hide
+    )?;
 
     loop {
-        let mut screen_str = String::new();
 
-        let term_size = match terminal_size() {
-            Ok((width, height)) => (width as f32, height as f32),
-            Err(_) => {
-                eprintln!("Failed to get terminal size");
-                return;
-            }
-        };
-
-        for i in 0..term_size.0 as u16 {
-            for j in 0..term_size.1 as u16 {
-                let uv = [i as f32 / term_size.0, j as f32 / term_size.1];
-                let color = fragment(uv, timer);
-
-                screen_str.push_str(&format!(
-                    "{}{} ",
-                    cursor::Goto(i + 1, j + 1),
-                    color::Bg(color::Rgb(
-                        (color[0] * 255.0) as u8,
-                        (color[1] * 255.0) as u8,
-                        (color[2] * 255.0) as u8
-                    ))
-                ));
+        for j in 0..terminal::size().unwrap().1 {
+            for i in 0..terminal::size().unwrap().0 {
+                queue!(write,
+                    MoveTo(i, j),
+                    SetBackgroundColor(Color(Rgb())),
+                    Print('#')
+                )?;
             }
         }
-    print!("{}", screen_str);
 
-    thread::sleep(time::Duration::from_millis(100));
-    timer += 0.1;
+        write.flush()?;
+
+        if event::poll(Duration::from_millis(50)).unwrap() {
+            if let Event::Key(key_event) = event::read().unwrap() {
+                if key_event.code == KeyCode::Char('c') &&
+                   key_event.modifiers.contains(KeyModifiers::CONTROL)
+                {
+                    break;
+                }
+            }
+        }
     }
 
+    execute!(write,
+        LeaveAlternateScreen,
+        Show
+    )?;
+    terminal::disable_raw_mode()?;
+
+    Ok(())
 }

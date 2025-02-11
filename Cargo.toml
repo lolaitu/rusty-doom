@@ -4,4 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-termion = "*"
+anyhow = "1.0.95"
+crossterm = "0.28.1"
