@@ -62,8 +62,8 @@ impl Game {
                 queue!(self.write,
                     MoveTo(i, j),
                     SetBackgroundColor(Color::Rgb{
-                        r: (uv.0 * 255.0) as u8,
-                        g: (uv.1 * 255.0) as u8,
+                        r: 0_u8,
+                        g: 0_u8,
                         b: ( ((self.time_of_launch.elapsed().as_millis() as f32 / 1000_f32).sin() + 1_f32) * 128_f32 ) as u8
                         //b: ((self.time_of_launch.elapsed().as_millis() as f32 / 10_f32) as u32 % 255) as u8
                     }),
