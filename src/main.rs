@@ -11,6 +11,10 @@ use crossterm::{
 mod game;
 use game::Game;
 
+mod graphics;
+use graphics::draw;
+
+
 fn main() -> Result<()> {
 
     let mut write = std::io::stdout();

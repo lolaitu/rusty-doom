@@ -4,17 +4,18 @@ use crossterm::{
     queue,
     cursor::{MoveTo},
     event::{self, Event, KeyCode, KeyModifiers},
-    style::{Print, SetBackgroundColor, Color},
+    style::{SetBackgroundColor, Color},
     terminal,
 };
 
+use crate::graphics::draw;
 
 pub struct Game {
 	time_of_launch: Instant,
 	time_of_last_loop: Instant,
-	time_delta: Duration,
+	pub time_delta: Duration,
 
-	write: Stdout,
+	pub write: Stdout,
 }
 
 impl Game {
@@ -67,8 +68,8 @@ impl Game {
                         b: ( ((self.time_of_launch.elapsed().as_millis() as f32 / 1000_f32).sin() + 1_f32) * 128_f32 ) as u8
                         //b: ((self.time_of_launch.elapsed().as_millis() as f32 / 10_f32) as u32 % 255) as u8
                     }),
-                    Print(' ')
                 )?;
+                draw(self)?;
             }
         }
 
