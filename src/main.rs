@@ -1,3 +1,7 @@
+mod game;
+mod graphics;
+mod level;
+
 use std::io::Result;
 use crossterm::{
     execute,
@@ -7,16 +11,10 @@ use crossterm::{
         LeaveAlternateScreen
     },
 };
-
-mod game;
 use game::Game;
-
-mod graphics;
-use graphics::draw;
 
 
 fn main() -> Result<()> {
-
     let mut write = std::io::stdout();
 
     terminal::enable_raw_mode()?;
@@ -25,7 +23,9 @@ fn main() -> Result<()> {
         Hide
     )?;
 
-    let mut my_game = Game::new();
+    let mut test = level::Level::new()?;
+
+    let mut my_game = Game::new()?;
     my_game.launch()?;
 
     execute!(write,

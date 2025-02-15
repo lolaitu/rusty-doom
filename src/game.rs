@@ -1,32 +1,32 @@
-use std::io::{Stdout, Write, Result};
+use std::io::{Write, Result};
 use std::time::{Duration, Instant};
 use crossterm::{
-    queue,
-    cursor::{MoveTo},
     event::{self, Event, KeyCode, KeyModifiers},
-    style::{SetBackgroundColor, Color},
     terminal,
 };
 
+
 use crate::graphics::draw;
 
+
+
 pub struct Game {
-	time_of_launch: Instant,
-	time_of_last_loop: Instant,
+	pub time_of_launch: Instant,
+	pub time_of_last_loop: Instant,
 	pub time_delta: Duration,
 
-	pub write: Stdout,
+	pub term_size: (u16, u16),
 }
 
 impl Game {
-    pub fn new() -> Self {
+    pub fn new() -> Result<Self> {
         let now = Instant::now();
-        Self {
+        Ok( Self {
             time_of_launch: now,
             time_of_last_loop: now,
             time_delta: Duration::ZERO,
-            write: std::io::stdout(),
-        }
+            term_size: terminal::size()?,
+        })
     }
 
     pub fn launch(&mut self) -> Result<()> {
@@ -47,33 +47,17 @@ impl Game {
     }
 
     fn main_loop(&mut self) -> Result<()> {
+        let mut write = std::io::stdout();
 
-        let term_size = terminal::size()?;
+        //self.term_size = terminal::size()?;
 
         self.time_delta = self.time_of_last_loop.elapsed();
         self.time_of_last_loop += self.time_delta;
 
-        for j in 0..term_size.1 {
-            for i in 0..term_size.0 {
-                let uv = {(
-                    i as f32 / term_size.0 as f32,
-                    j as f32 / term_size.1 as f32
-                )};
 
-                queue!(self.write,
-                    MoveTo(i, j),
-                    SetBackgroundColor(Color::Rgb{
-                        r: (uv.0 * 255.0) as u8,
-                        g: (uv.1 * 255.0) as u8,
-                        b: ( ((self.time_of_launch.elapsed().as_millis() as f32 / 1000_f32).sin() + 1_f32) * 128_f32 ) as u8
-                        //b: ((self.time_of_launch.elapsed().as_millis() as f32 / 10_f32) as u32 % 255) as u8
-                    }),
-                )?;
-                draw(self)?;
-            }
-        }
+        draw(self)?;
 
-        self.write.flush()?;
+        write.flush()?;
 
         Ok(())
     }
