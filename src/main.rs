@@ -27,45 +27,40 @@ use mainGame::MainGame;
 
 
 fn main() -> Result<()>{
-    let mut test = level::Level::new()?;
 
-    let mut maze = Vec::new();
-    let mut rng = rand::thread_rng();
+    terminal_init()
 
-    for y in 0..40 {
-        if y == 0 || y == 39 {
-            // Bord supérieur et inférieur rempli de #
-            maze.push(vec!['#'; 160]);
-        } else {
-            // Bordures gauche et droite avec des espaces au milieu et des # aléatoires
-            let mut line = vec!['#'];
-            for x in 1..159 {
-                // 5% chance to place a wall
-                //if rng.gen_ratio(1, 20) {
-                //    line.push('#');
-                //} else {
+    let mut test = level::Level::debug_1()?;
 
-                //}
-                if (y == 20 && x<100 && x>50) || (x == 50 && y>20 && y<30){
-                    line.push('#');
-                }
-                else{
-                    line.push(' ');
-                }
-            }
-            line.push('#');
-            maze.push(line);
-        }
-    }
+    //let MAZE: &Vec<Vec<char>> = &maze;
 
-    let MAZE: &Vec<Vec<char>> = &maze;
+    // let mut mainGame = MainGame::new(&test);
+    // mainGame.init()?;
 
-    let mut mainGame = MainGame::new(MAZE);
-    mainGame.init()?;
+    //let mut my_game = Game::new()?;
+    //my_game.launch()?;
 
-    let mut my_game = Game::new()?;
-    my_game.launch()?;
+    terminal_cleanup()
 
     Ok(())
 }
 
+fn terminal_init() -> Result<()> {
+
+    terminal::enable_raw_mode()?;
+
+    execute!(std::io::stdout(),
+        EnterAlternateScreen,
+        Hide
+    )?;
+}
+
+fn terminal_cleanup() -> Result<()> {
+
+    execute!(std::io::stdout(),
+        LeaveAlternateScreen,
+        Show
+    )?;
+
+    terminal::disable_raw_mode()?;
+}
