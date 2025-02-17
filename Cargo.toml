@@ -5,3 +5,6 @@ edition = "2021"
 
 [dependencies]
 crossterm = "0.28.1"
+device_query = "0.2"
+enigo = "0.0.14"
+rand = "0.8.5"
