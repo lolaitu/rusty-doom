@@ -24,6 +24,7 @@ impl Level {
                 );
             }
         }
+        //std::io::stdout().flush()?;
     }
 
 	pub fn new() -> Result<Self, std::io::Error> {

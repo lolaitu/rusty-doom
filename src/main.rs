@@ -9,7 +9,7 @@ use crossterm::{
         EnterAlternateScreen,
         LeaveAlternateScreen
     },
-    event::{self, Event, KeyCode},
+    event::{self, Event, KeyCode, KeyModifiers},
     cursor::{Hide, Show, MoveTo}
 };
 
@@ -37,10 +37,12 @@ mod mainGame;
 
 fn main() -> Result<()>{
 
-    //terminal_init();
+    terminal_init()?;
 
-    let mut test = level::Level::debug_1()?;
+    let test = level::Level::debug_1()?;
     test.print();
+
+    wait_ctrl_c()?;
 
     //let MAZE: &Vec<Vec<char>> = &maze;
 
@@ -50,7 +52,7 @@ fn main() -> Result<()>{
     //let mut my_game = Game::new()?;
     //my_game.launch()?;
 
-    //terminal_cleanup();
+    terminal_cleanup()?;
 
     Ok(())
 }
@@ -76,5 +78,19 @@ fn terminal_cleanup() -> Result<()> {
 
     terminal::disable_raw_mode()?;
 
+    Ok(())
+}
+
+fn wait_ctrl_c() -> Result<()> {
+    loop {
+        if event::poll(Duration::from_millis(50))?{
+            if let Event::Key(key_event) = event::read()? {
+                if key_event.code == KeyCode::Char('c') &&
+                   key_event.modifiers.contains(KeyModifiers::CONTROL)
+                { break; }
+            }
+        }
+
+    }
     Ok(())
 }
