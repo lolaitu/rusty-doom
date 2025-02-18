@@ -1,10 +1,11 @@
+/*
 // player.rs
 //use device_query::{DeviceQuery, DeviceState, MouseState, Keycode}; // To detect keyboard and mouse position
 use device_query::{DeviceQuery, DeviceState, Keycode}; // To detect keyboard and mouse position
 
 pub struct Player {
     pub position: (f64, f64),  // Position du joueur sous forme de coordonnées (x, y)
-    pub direction: f64, 
+    pub direction: f64,
     pub x_mouse: i32,
     pub y_mouse: i32,
     pub angle: f64,
@@ -30,7 +31,7 @@ impl Player {
         self.angle += delta_mouse * mouse_sensitivity;
 
         let device_state = DeviceState::new();
-        
+
         if !keys.is_empty() {
             let current_pos = (self.position.0 as usize, self.position.1 as usize);
             let mut next_pos = (self.position.0, self.position.1);
@@ -39,7 +40,7 @@ impl Player {
             // Calculate movement vector
             let mut dx = 0.0;
             let mut dy = 0.0;
-            
+
             if keys.contains(&Keycode::W) {
                 dx -= self.angle.cos();
                 dy -= self.angle.sin();
@@ -97,7 +98,7 @@ impl Player {
 
         let x_diff = pos.0 as i32 - self.position.0 as i32;
         let y_diff = pos.1 as i32 - self.position.1 as i32;
-    
+
         match (x_diff, y_diff) {
             (-1, -1) => environement[0] == '#', // Northwest
             (0, -1) => environement[1] == '#',  // North
@@ -113,3 +114,4 @@ impl Player {
 
 }
 
+*/

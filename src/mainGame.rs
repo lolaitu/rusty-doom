@@ -1,3 +1,4 @@
+/*
 use std::io::{stdout, Write};
 use std::io::Result;
 use device_query::{DeviceQuery, DeviceState, MouseState, Keycode};
@@ -46,7 +47,7 @@ impl<'a> MainGame<'a> {
         execute!(self.stdout, terminal::Clear(ClearType::All))?;
 
         self.play()?;
-        
+
         terminal::disable_raw_mode()?;
         Ok(())
     }
@@ -69,7 +70,7 @@ impl<'a> MainGame<'a> {
             }
             if mouse.coords.1 != 900{ // keep the mouse outside the screen
                 self.enigo.mouse_move_to(mouse.coords.0, 900);
-            } 
+            }
 
             if !self.keys.is_empty() {
                 if self.keys.contains(&Keycode::Escape) { // to stop the program
@@ -83,7 +84,7 @@ impl<'a> MainGame<'a> {
             //self.render()?;
             // Pause of 100 ms to limit fresh rate
             std::thread::sleep(std::time::Duration::from_millis(100));
-        
+
         }
 
         Ok(())
@@ -99,10 +100,10 @@ impl<'a> MainGame<'a> {
         let se = self.map[position.1 as usize + 2][position.0 as usize + 2];
         let e = self.map[position.1 as usize + 1][position.0 as usize + 2];
         let w = self.map[position.1 as usize + 1][position.0 as usize];
-        
+
         let environement = [nw, n, ne, w, e, sw, s, se];
         self.player.move_player(delta_mouse as f64, environement, &self.keys);
-        
+
         true
     }
 
@@ -136,35 +137,35 @@ impl<'a> MainGame<'a> {
         for x in 0..self.screen_size.0 {
             // Calculate ray angle (player angle +/- half FOV)
             let ray_angle = self.player.angle + 2.0 * std::f64::consts::PI - (fov / 2.0) + (x as f64 * ray_angle_increment);
-            
+
             // Calculate ray direction vectors
             let ray_dir_x = ray_angle.to_radians().cos();
             let ray_dir_y = ray_angle.to_radians().sin();
-            
+
             // Ray starting position (player position)
             let mut ray_x = self.player.position.0;
             let mut ray_y = self.player.position.1;
-            
+
             // Cast ray until we hit a wall
             let mut distance = 0.0;
             let step_size = 0.1; // Smaller step size for more precise detection
-            
+
             while distance < 120.0 { // Maximum view distance
                 ray_x += ray_dir_x * step_size;
                 ray_y += ray_dir_y * step_size;
                 distance += step_size;
-                
+
                 // Check if ray hit a wall
                 let map_x = ray_x as usize;
                 let map_y = ray_y as usize;
-                
+
                 if map_y < self.map.len() && map_x < self.map[map_y].len() {
                     if self.map[map_y][map_x] == '#' {
                         // Calculate wall height based on distance
                         let wall_height = (self.screen_size.1 as f64 / distance) * 20.0;
                         let wall_start = ((self.screen_size.1 as f64 - wall_height) / 2.0).max(0.0) as usize;
                         let wall_end = ((self.screen_size.1 as f64 + wall_height) / 2.0).min(self.screen_size.1 as f64) as usize;
-                        
+
                         // Draw wall column
                         for y in 0..self.screen_size.1 {
                             execute!(self.stdout, MoveTo(x as u16, y as u16))?;
@@ -188,7 +189,7 @@ impl<'a> MainGame<'a> {
                 }
             }
         }
-        
+
         // for (y, line) in self.map.iter().enumerate() {
         //     execute!(self.stdout, MoveTo(0, y as u16))?;
 
@@ -207,3 +208,4 @@ impl<'a> MainGame<'a> {
         Ok(())
     }
 }
+*/

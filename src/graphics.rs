@@ -2,7 +2,7 @@ use std::io::Result;
 use crossterm::{
     queue,
     cursor::{MoveTo},
-    style::{SetBackgroundColor, Color},
+    style::{Print, SetBackgroundColor, Color},
     terminal,
 };
 
@@ -28,6 +28,7 @@ pub fn draw(game: &Game) -> Result<()> {
 	                b: ( ((game.time_of_launch.elapsed().as_millis() as f32 / 1000_f32).sin() + 1_f32) * 128_f32 ) as u8
 	                //b: ((self.time_of_launch.elapsed().as_millis() as f32 / 10_f32) as u32 % 255) as u8
 	            }),
+	            Print(' '),
 	        )?;
 	    }
 	}
