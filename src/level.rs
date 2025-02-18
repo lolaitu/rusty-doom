@@ -12,7 +12,7 @@ pub struct Level {
 
 impl Level {
 
-	pub fn print(&self) {
+	pub fn print(&self) -> Result<()> {
         let (width, height) = self.size;
         for y in 0..height {
             for x in 0..width {
@@ -21,10 +21,11 @@ impl Level {
                 queue!(std::io::stdout(),
                 	MoveTo(x as u16, y as u16),
                 	Print(symbol),
-                );
+                )?;
             }
         }
         //std::io::stdout().flush()?;
+        Ok(())
     }
 
 	pub fn new() -> Result<Self, std::io::Error> {
