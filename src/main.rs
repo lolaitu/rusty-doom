@@ -5,12 +5,13 @@ use std::io::{stdout, Write, Result};
 use crossterm::{
     queue,
     execute,
+    style::Print,
+    cursor::{Hide, Show, MoveTo},
     terminal::{self,
         EnterAlternateScreen,
         LeaveAlternateScreen
     },
     event::{self, Event, KeyCode, KeyModifiers},
-    cursor::{Hide, Show, MoveTo}
 };
 
 use std::fmt;               // print sur objet
@@ -41,6 +42,9 @@ fn main() -> Result<()>{
 
     let test = level::Level::debug_1()?;
     test.print();
+    /*execute!(std::io::stdout(),
+        Print("Ma Bite"),
+    )?;*/
 
     wait_ctrl_c()?;
 
