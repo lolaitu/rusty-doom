@@ -43,10 +43,7 @@ fn main() -> Result<()>{
     let test = level::Level::debug_1()?;
     test.print();
 
-    // let mut mainGame = MainGame::new(&test);
-    // mainGame.init()?;
-
-    let mut my_game = Game::new()?;
+    let mut my_game = Game::new(test)?;
     my_game.launch()?;
 
     wait_ctrl_c()?;

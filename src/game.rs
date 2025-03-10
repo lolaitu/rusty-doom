@@ -7,24 +7,28 @@ use crossterm::{
 
 
 use crate::graphics::draw;
+use crate::level::Level;
 
 
 
 pub struct Game {
-	pub time_of_launch: Instant,
-	pub time_of_last_loop: Instant,
-	pub time_delta: Duration,
+    pub time_of_launch: Instant,
+    pub time_of_last_loop: Instant,
+    pub time_delta: Duration,
 
-	pub term_size: (u16, u16),
+    pub level: Level,
+
+    pub term_size: (u16, u16),
 }
 
 impl Game {
-    pub fn new() -> Result<Self> {
+    pub fn new(level: Level) -> Result<Self> {
         let now = Instant::now();
         Ok( Self {
             time_of_launch: now,
             time_of_last_loop: now,
             time_delta: Duration::ZERO,
+            level: level,
             term_size: terminal::size()?,
         })
     }

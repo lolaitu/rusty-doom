@@ -19,13 +19,13 @@ impl Level {
             for x in 0..width {
                 let cell = self.layout[x as usize][y as usize];
                 let symbol = if cell != 0 { '█' } else { ' ' };
-                execute!(std::io::stdout(),
+                queue!(std::io::stdout(),
                 	MoveTo(x as u16, y as u16),
                 	Print(symbol),
                 )?;
             }
         }
-        //std::io::stdout().flush()?;
+        execute!(std::io::stdout())?;
         Ok(())
     }
 
