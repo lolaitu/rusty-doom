@@ -42,19 +42,14 @@ fn main() -> Result<()>{
 
     let test = level::Level::debug_1()?;
     test.print();
-    /*execute!(std::io::stdout(),
-        Print("Ma Bite"),
-    )?;*/
-
-    wait_ctrl_c()?;
-
-    //let MAZE: &Vec<Vec<char>> = &maze;
 
     // let mut mainGame = MainGame::new(&test);
     // mainGame.init()?;
 
-    //let mut my_game = Game::new()?;
-    //my_game.launch()?;
+    let mut my_game = Game::new()?;
+    my_game.launch()?;
+
+    wait_ctrl_c()?;
 
     terminal_cleanup()?;
 
