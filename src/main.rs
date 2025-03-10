@@ -33,6 +33,8 @@ mod player;  // Importer le fichier player.rs
 
 mod mainGame;
 //use mainGame::MainGame;
+//
+mod joueur;
 
 
 
@@ -41,7 +43,7 @@ fn main() -> Result<()>{
     terminal_init()?;
 
     let test = level::Level::debug_1()?;
-    test.print();
+    //test.print();
     /*execute!(std::io::stdout(),
         Print("Ma Bite"),
     )?;*/
@@ -53,8 +55,8 @@ fn main() -> Result<()>{
     // let mut mainGame = MainGame::new(&test);
     // mainGame.init()?;
 
-    //let mut my_game = Game::new()?;
-    //my_game.launch()?;
+    let mut my_game = Game::new()?;
+    my_game.launch()?;
 
     terminal_cleanup()?;
 

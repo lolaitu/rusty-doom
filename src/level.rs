@@ -7,8 +7,8 @@ use crossterm::{
 };
 
 pub struct Level {
-	layout: Vec<Vec<u8>>,
-	size: (u32, u32),
+	pub layout: Vec<Vec<u8>>,
+	pub size: (u32, u32),
 }
 
 impl Level {
@@ -40,7 +40,7 @@ impl Level {
 				vec![1, 1, 1, 1, 1],
 			],
 			size: (5, 5)
-		})
+	 	})
 	}
 
 	pub fn debug_1() -> Result<Self, std::io::Error> {
