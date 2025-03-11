@@ -127,11 +127,12 @@ impl<'a> MainGame<'a> {
         self.stdout.flush()?;
         Ok(())
     }
-
+*/
+/*
     pub fn ray_render(&mut self) -> Result<()>{
         execute!(self.stdout, MoveTo(0, 0))?;
 
-        let fov  = 60.0; // field of view in degrees
+         let fov  = 60.0; // field of view in degrees
         let ray_angle_increment: f64 = fov as f64 / self.screen_size.0 as f64;
 
         for x in 0..self.screen_size.0 {
@@ -188,7 +189,7 @@ impl<'a> MainGame<'a> {
                     }
                 }
             }
-        }
+       }
 
         // for (y, line) in self.map.iter().enumerate() {
         //     execute!(self.stdout, MoveTo(0, y as u16))?;
