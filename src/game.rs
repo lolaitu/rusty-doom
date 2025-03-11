@@ -21,6 +21,7 @@ pub struct Game {
 	pub term_size: (u16, u16),
   pub level : Level,
   pub stdout: std::io::Stdout,
+  pub joueur : Joueur,
 }
 
 impl Game {
@@ -32,14 +33,15 @@ impl Game {
             time_delta: Duration::ZERO,
             term_size: terminal::size()?,
             level : level::Level::debug_1()?,
-            stdout : stdout()
+            stdout : stdout(),
+            joueur : joueur::Joueur::new()?
         })
     }
 
     pub fn launch(&mut self) -> Result<()> {
-        let mut joueur = joueur::Joueur::new()?;
+        let mut stdout = stdout();
         loop {
-            self.main_loop(& mut joueur)?;
+            self.main_loop(&mut stdout)?;
             
             // Ctrl-C to close the loop
             if event::poll(Duration::from_millis(50))?{
@@ -54,17 +56,19 @@ impl Game {
         Ok(())
     }
 
-fn main_loop(&mut self, Joueur : &mut Joueur) -> Result<()> {
+fn main_loop(&mut self, stdout : &mut std::io::Stdout) -> Result<()> {
 
         let mut write = std::io::stdout();
 
         //self.term_size = terminal::size()?;
 
         self.time_delta = self.time_of_last_loop.elapsed();
-        self.time_of_last_loop += self.time_delta;
+        self.time_of_last_loop = Instant::now();
 
         execute!(self.stdout, Clear(ClearType::All))?;
-        draw(self,Joueur, &mut self.stdout);
+        draw(self, stdout)?;
+
+        self.joueur.update()?;
 
         write.flush()?;
 

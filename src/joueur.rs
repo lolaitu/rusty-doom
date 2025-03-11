@@ -9,23 +9,21 @@ pub struct Joueur {
     pub posX: f64,
     pub posY:f64,
 
-    pub dirX : f64,
-    pub dirY : f64,
-
-    pub planeX : f64,
-    pub planeY : f64,
+    pub angle: f64,
 }
 impl Joueur {
     pub fn new() -> Result<Self> {
     let now = Instant::now();
     Ok( Self {
-            posX : 1.0,
-            posY : 1.0,
-            
-            dirX : 0.0,
-            dirY : 0.0,
-            planeX : 0.0,
-            planeY : 0.66
+            posX : 4.0,
+            posY : 11.0,
+            angle: 0.0,
         })
+    }
+
+    pub fn update(& mut self) -> Result<()> {
+        self.angle += 1.;
+        if (self.angle > 360.) { self.angle = 0.; }
+        Ok(())
     }
 }

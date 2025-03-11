@@ -43,12 +43,6 @@ fn main() -> Result<()>{
     terminal_init()?;
 
     let test = level::Level::debug_1()?;
-    //test.print();
-    /*execute!(std::io::stdout(),
-        Print("Ma Bite"),
-    )?;*/
-
-    wait_ctrl_c()?;
 
     //let MAZE: &Vec<Vec<char>> = &maze;
 
