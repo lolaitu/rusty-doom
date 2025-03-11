@@ -3,9 +3,9 @@ use std::time::{Duration, Instant};
 use crossterm::{
     event::{self, Event, KeyCode, KeyModifiers},
     terminal,
+    execute,
+    terminal::{Clear,ClearType}
 };
-
-
 use crate::graphics::draw;
 use crate::level::{self, Level};
 use crate::joueur::Joueur;
@@ -63,8 +63,8 @@ fn main_loop(&mut self, Joueur : &mut Joueur) -> Result<()> {
         self.time_delta = self.time_of_last_loop.elapsed();
         self.time_of_last_loop += self.time_delta;
 
-
-        draw(self,Joueur);
+        execute!(self.stdout, Clear(ClearType::All))?;
+        draw(self,Joueur, &mut self.stdout);
 
         write.flush()?;
 

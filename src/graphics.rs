@@ -8,7 +8,7 @@ use crate::game::Game;
 use crate::joueur::Joueur;
 
 
-pub fn draw(game: &Game, mut joueur: &Joueur) -> Result<()>  {
+pub fn draw(game: &Game, mut joueur: &Joueur, stdout: &mut Stdout) -> Result<()>  {
 let fov  = 60.0; // field of view in degrees
 let ray_angle_increment: f64 = fov as f64 / game.term_size.0 as f64;
 
@@ -39,16 +39,17 @@ for x in 0..game.term_size.0 {
         if map_y < game.level.size.0 as usize && map_x < game.level.size.1 as usize {
             if game.level.layout[map_y][map_x] > 0 {
                 // Calculate wall height based on distance
-                let wall_height = (game.level.size.1 as f64 / distance) * 20.0;
+                let wall_height = (game.level.size.0 as f64 / distance) * 20.0;
                 let wall_start = ((game.level.size.1 as f64 - wall_height) / 2.0).max(0.0) as u16;
                 let wall_end = ((game.level.size.1 as f64 + wall_height) / 2.0).min(game.term_size.1 as f64) as usize;
 
                 let mut stdout=stdout();
+
                 // Draw wall column
                 for y in 0..game.term_size.1 {
                     execute!(stdout, MoveTo(x as u16, y as u16))?;
                     if y < wall_start {
-                        print!(" "); // Sky
+                        print!("*"); // Sky
                     } else if (y < wall_end as u16) {
                         // Wall shading based on distance
                         let shade = if distance < 5.0 { "█" }
