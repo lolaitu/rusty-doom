@@ -14,12 +14,7 @@ use crossterm::{
     event::{self, Event, KeyCode, KeyModifiers},
 };
 
-use std::fmt;               // print sur objet
-use std::thread::sleep;     // sleep
 use std::time::Duration;    // gestion des temps
-use rand::Rng;              // gestion aléatoire
-//use device_query::{DeviceQuery, DeviceState, MouseState, Keycode};
-//use enigo::{Enigo, MouseControllable}; // To move the mouse
 
 mod game;
 use game::Game;
@@ -29,11 +24,7 @@ mod graphics;
 mod level;
 
 mod player;  // Importer le fichier player.rs
-//use player::Player;  // Importer la struct Player
 
-mod mainGame;
-//use mainGame::MainGame;
-//
 mod joueur;
 
 
@@ -44,12 +35,7 @@ fn main() -> Result<()>{
 
     let test = level::Level::debug_1()?;
 
-    //let MAZE: &Vec<Vec<char>> = &maze;
-
-    // let mut mainGame = MainGame::new(&test);
-    // mainGame.init()?;
-
-    let mut my_game = Game::new()?;
+    let mut my_game = Game::new(test)?;
     my_game.launch()?;
 
     terminal_cleanup()?;
