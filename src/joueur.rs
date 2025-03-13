@@ -28,29 +28,31 @@ impl Joueur {
     }
 
     fn mouvement(& mut self) -> Result<()> {
-        let (mut dx, mut dy, mut dangle): (f64, f64, f64) = (0.0, 0.0, 0.0);
-        let (mut forward, mut side): (i8, i8) = (0, 0); 
+        let (mut dx, mut dy): (f64, f64) = (0., 0.);
+        let (mut forward, mut side): (f64, f64) = (0., 0.); 
+        let max_speed = 1.;
+        let max_rotation_speed = 1.;
 
         if event::poll(Duration::from_millis(100))? {
             if let Event::Key(key_event) = event::read()? {
                 match key_event.code {
                     KeyCode::Up => {
-                        forward += 1;
+                        forward += 1.;
                     }
                     KeyCode::Down => {
-                        forward -= 1;
+                        forward -= 1.;
                     }
                     KeyCode::Right => {
-                        side += 1;
+                        side += 1.;
                     }
                     KeyCode::Left => {
-                        side -= 1;
+                        side -= 1.;
                     }
-                    KeyCode::w => {
-                        dangle -= 1;
+                    KeyCode::Char('w') => {
+                        self.angle -= max_rotation_speed;
                     }
-                    KeyCode::x => {
-                        dangle += 1;
+                    KeyCode::Char('x') => {
+                        self.angle += max_rotation_speed;
                     }
                     // Ajoutez d'autres cas selon vos besoins
                     _ => {}
@@ -58,11 +60,14 @@ impl Joueur {
             }
         }
 
-        self.angle += dangle;
         if      self.angle > 360. { self.angle -= 360.; }
         else if self.angle < 0.   { self.angle += 360.; }
 
-        dx = (Math::)
+        dx = (forward * self.angle.cos() + side * self.angle.cos()) * max_speed;
+        dy = (forward * self.angle.sin() + side * self.angle.sin()) * max_speed;
+
+        self.x += dx;
+        self.y += dy;
 
         Ok(())
     }
