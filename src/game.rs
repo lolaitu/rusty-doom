@@ -63,7 +63,8 @@ impl Game {
         self.time_of_last_loop = Instant::now();
 
         //execute!(write, Clear(ClearType::All))?;
-        draw(self, stdout)?;
+        //draw(self, stdout)?;
+        self.level.print_with_player(&self.joueur)?;
 
         self.joueur.update()?;
 

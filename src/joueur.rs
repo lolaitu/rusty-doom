@@ -9,7 +9,7 @@ pub struct Joueur {
     pub x: f64,
     pub y: f64,
 
-    pub angle: f64,
+    pub angle: f64, // 0° facing est, 90° facing north 
 }
 impl Joueur {
 
@@ -31,7 +31,7 @@ impl Joueur {
         let (mut dx, mut dy): (f64, f64) = (0., 0.);
         let (mut forward, mut side): (f64, f64) = (0., 0.); 
         let max_speed = 1.;
-        let max_rotation_speed = 1.;
+        let max_rotation_speed = 10.;
 
         if event::poll(Duration::from_millis(100))? {
             if let Event::Key(key_event) = event::read()? {
@@ -49,10 +49,10 @@ impl Joueur {
                         side -= 1.;
                     }
                     KeyCode::Char('w') => {
-                        self.angle -= max_rotation_speed;
+                        self.angle += max_rotation_speed;
                     }
                     KeyCode::Char('x') => {
-                        self.angle += max_rotation_speed;
+                        self.angle -= max_rotation_speed;
                     }
                     // Ajoutez d'autres cas selon vos besoins
                     _ => {}
@@ -63,8 +63,12 @@ impl Joueur {
         if      self.angle > 360. { self.angle -= 360.; }
         else if self.angle < 0.   { self.angle += 360.; }
 
-        dx = (forward * self.angle.cos() + side * self.angle.cos()) * max_speed;
-        dy = (forward * self.angle.sin() + side * self.angle.sin()) * max_speed;
+        dx = (forward * self.angle.to_radians().cos() + 
+              side    * self.angle.to_radians().sin()
+        ) * max_speed;
+        dy = (forward * self.angle.to_radians().cos() - 
+              side    * self.angle.to_radians().sin()
+        ) * max_speed;
 
         self.x += dx;
         self.y += dy;
