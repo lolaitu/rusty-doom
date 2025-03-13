@@ -1,12 +1,10 @@
 // Écriture et gestion des erreur
-use std::io::{stdout, Write, Result};
+use std::io::Result;
 
 // gestion des appelles sur le terminal
 use crossterm::{
-    queue,
     execute,
-    style::Print,
-    cursor::{Hide, Show, MoveTo},
+    cursor::{Hide, Show},
     terminal::{self,
         EnterAlternateScreen,
         LeaveAlternateScreen
@@ -23,7 +21,7 @@ mod graphics;
 
 mod level;
 
-mod player;  // Importer le fichier player.rs
+mod player;
 
 mod joueur;
 
@@ -67,7 +65,7 @@ fn terminal_cleanup() -> Result<()> {
     Ok(())
 }
 
-fn wait_ctrl_c() -> Result<()> {
+fn _wait_ctrl_c() -> Result<()> {
     loop {
         if event::poll(Duration::from_millis(50))?{
             if let Event::Key(key_event) = event::read()? {

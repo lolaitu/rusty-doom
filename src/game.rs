@@ -3,8 +3,6 @@ use std::time::{Duration, Instant};
 use crossterm::{
     event::{self, Event, KeyCode, KeyModifiers},
     terminal,
-    execute,
-    terminal::{Clear,ClearType}
 };
 use crate::graphics::draw;
 use crate::level::Level;
