@@ -14,8 +14,8 @@ pub struct Joueur {
 impl Joueur {
 
     pub fn new() -> Result<Self> {
-    let now = Instant::now();
-    Ok( Self {
+        let now = Instant::now();
+        Ok( Self {
             x : 4.0,
             y : 11.0,
             angle: 0.0,
