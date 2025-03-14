@@ -3,13 +3,13 @@ use std::io::Result;
 
 // gestion des appelles sur le terminal
 use crossterm::{
-    execute,
-    cursor::{Hide, Show},
-    terminal::{self,
-        EnterAlternateScreen,
-        LeaveAlternateScreen
-    },
-    event::{self, Event, KeyCode, KeyModifiers},
+  execute,
+  cursor::{Hide, Show},
+  terminal::{self,
+    EnterAlternateScreen,
+    LeaveAlternateScreen
+  },
+  event::{self, Event, KeyCode, KeyModifiers},
 };
 
 use std::time::Duration;    // gestion des temps
@@ -29,52 +29,51 @@ mod joueur;
 
 fn main() -> Result<()>{
 
-    terminal_init()?;
+  terminal_init()?;
 
-    let test = level::Level::debug_1()?;
+  let test = level::Level::debug_1()?;
 
-    let mut my_game = Game::new(test)?;
-    my_game.launch()?;
+  let mut my_game = Game::new(test)?;
+  my_game.launch()?;
 
-    terminal_cleanup()?;
+  terminal_cleanup()?;
 
-    Ok(())
+  Ok(())
 }
 
 fn terminal_init() -> Result<()> {
 
-    terminal::enable_raw_mode()?;
+  terminal::enable_raw_mode()?;
 
-    execute!(std::io::stdout(),
-        EnterAlternateScreen,
-        Hide
-    )?;
+  execute!(std::io::stdout(),
+    EnterAlternateScreen,
+    Hide
+  )?;
 
-    Ok(())
+  Ok(())
 }
 
 fn terminal_cleanup() -> Result<()> {
 
-    execute!(std::io::stdout(),
-        LeaveAlternateScreen,
-        Show
-    )?;
+  execute!(std::io::stdout(),
+    LeaveAlternateScreen,
+    Show
+  )?;
 
-    terminal::disable_raw_mode()?;
+  terminal::disable_raw_mode()?;
 
-    Ok(())
+  Ok(())
 }
 
 fn _wait_ctrl_c() -> Result<()> {
-    loop {
-        if event::poll(Duration::from_millis(50))?{
-            if let Event::Key(key_event) = event::read()? {
-                if key_event.code == KeyCode::Char('c') &&
-                   key_event.modifiers.contains(KeyModifiers::CONTROL)
-                { break; }
-            }
-        }
-
+  loop {
+    if event::poll(Duration::from_millis(50))?{
+      if let Event::Key(key_event) = event::read()? {
+        if key_event.code == KeyCode::Char('c') &&
+          key_event.modifiers.contains(KeyModifiers::CONTROL)
+        { break; }
+      }
     }
-    Ok(())
+  }
+  Ok(())
 }
