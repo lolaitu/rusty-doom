@@ -8,6 +8,7 @@ use crate::level::Level;
 use crate::player::{Joueur, PlayerInput};
 use crate::world::World;
 use crate::entity::Entity;
+use crate::graphics;
 
 pub struct Game {
   pub time_of_launch: Instant,
@@ -86,10 +87,9 @@ impl Game {
     // Cap at ~35 FPS like original Doom
     std::thread::sleep(Duration::from_millis(28));
 
-    // Get player entity for rendering
-    if let Some(player_entity) = self.world.get_entity(self.player_entity_id) {
-      self.level.print_with_player_entity(player_entity)?;
-    }
+    // Render 3D raycasting view
+    let mut stdout = std::io::stdout();
+    graphics::draw(self, &mut stdout)?;
 
     write.flush()?;
 

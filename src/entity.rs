@@ -1,5 +1,9 @@
+/* Class that manages all the world elements : players, enemies, 
+projectiles*/
+
 use std::io::Result;
 
+// structure that stores coordinates of the entity
 #[derive(Debug, Clone, Copy)]
 pub struct Transform {
     pub x: f64,
@@ -13,6 +17,7 @@ impl Transform {
     }
 }
 
+// enum of the entities types
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EntityType {
     Player,
@@ -20,6 +25,7 @@ pub enum EntityType {
     Projectile,
 }
 
+// structure that stores entities stats
 #[derive(Clone)]
 pub struct Entity {
     pub id: u32,

@@ -54,6 +54,14 @@ cargo test
 - W/X keys: Rotate player left/right  
 - Ctrl+C: Exit game
 
+## Terminal Optimization
+
+For best 3D raycasting experience:
+- **Reduce font size** to 8-10px for higher resolution
+- **Use monospace font** (Consolas, Monaco, or terminal default)
+- **Maximize terminal window** for wider FOV
+- **Disable cursor blinking** if possible to reduce flicker
+
 ## Level System
 
 Levels are represented as 2D grids where:
