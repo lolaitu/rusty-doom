@@ -1,25 +1,21 @@
-// Écriture et gestion des erreur
-use std::io::{stdout, Write, Result};
+/* Main file that manages : terminal initialization, cleanup, 
+rendering, input handling and main loop. */
 
-// gestion des appelles sur le terminal
+// terminal manipulation library
 use crossterm::{
-    queue,
-    execute,
-    style::Print,
-    cursor::{Hide, Show, MoveTo},
-    terminal::{self,
-        EnterAlternateScreen,
-        LeaveAlternateScreen
-    },
-    event::{self, Event, KeyCode, KeyModifiers},
+  execute,
+  cursor::{Hide, Show},
+  terminal::{self,
+    EnterAlternateScreen,
+    LeaveAlternateScreen
+  },
+  event::{self, Event, KeyCode, KeyModifiers},
 };
 
-use std::fmt;               // print sur objet
-use std::thread::sleep;     // sleep
-use std::time::Duration;    // gestion des temps
-use rand::Rng;              // gestion aléatoire
-//use device_query::{DeviceQuery, DeviceState, MouseState, Keycode};
-//use enigo::{Enigo, MouseControllable}; // To move the mouse
+// result type for I/O operations
+use std::io::Result;
+// time type to represent span of time
+use std::time::Duration;
 
 mod game;
 use game::Game;
@@ -27,74 +23,60 @@ use game::Game;
 mod graphics;
 
 mod level;
-
-mod player;  // Importer le fichier player.rs
-//use player::Player;  // Importer la struct Player
-
-mod mainGame;
-//use mainGame::MainGame;
-
+mod player;
 
 
 fn main() -> Result<()>{
 
-    terminal_init()?;
+  terminal_init()?;
 
-    let test = level::Level::debug_1()?;
-    test.print();
-    /*execute!(std::io::stdout(),
-        Print("Ma Bite"),
-    )?;*/
+  let test = level::Level::debug_1()?;
 
-    wait_ctrl_c()?;
+  let mut my_game = Game::new(test)?;
+  
+  loop {
+    // Check for Ctrl+C in main
+    if event::poll(Duration::from_millis(1))? {
+      if let Event::Key(key_event) = event::read()? {
+        if key_event.code == KeyCode::Char('c') &&
+          key_event.modifiers.contains(KeyModifiers::CONTROL)
+        {
+          break;
+        }
+        // Pass non-system keys to game
+        my_game.handle_input(key_event)?;
+      }
+    }
+    
+    if my_game.update()? {
+      break;
+    }
+  }
 
-    //let MAZE: &Vec<Vec<char>> = &maze;
+  terminal_cleanup()?;
 
-    // let mut mainGame = MainGame::new(&test);
-    // mainGame.init()?;
-
-    //let mut my_game = Game::new()?;
-    //my_game.launch()?;
-
-    terminal_cleanup()?;
-
-    Ok(())
+  Ok(())
 }
 
 fn terminal_init() -> Result<()> {
+  terminal::enable_raw_mode()?;
 
-    terminal::enable_raw_mode()?;
+  execute!(std::io::stdout(),
+    EnterAlternateScreen,
+    Hide
+  )?;
 
-    execute!(std::io::stdout(),
-        EnterAlternateScreen,
-        Hide
-    )?;
-
-    Ok(())
+  Ok(())
 }
 
 fn terminal_cleanup() -> Result<()> {
 
-    execute!(std::io::stdout(),
-        LeaveAlternateScreen,
-        Show
-    )?;
+  execute!(std::io::stdout(),
+    LeaveAlternateScreen,
+    Show
+  )?;
 
-    terminal::disable_raw_mode()?;
+  terminal::disable_raw_mode()?;
 
-    Ok(())
-}
-
-fn wait_ctrl_c() -> Result<()> {
-    loop {
-        if event::poll(Duration::from_millis(50))?{
-            if let Event::Key(key_event) = event::read()? {
-                if key_event.code == KeyCode::Char('c') &&
-                   key_event.modifiers.contains(KeyModifiers::CONTROL)
-                { break; }
-            }
-        }
-
-    }
-    Ok(())
+  Ok(())
 }
