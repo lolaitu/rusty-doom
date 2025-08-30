@@ -116,79 +116,44 @@ impl Player {
 
 */
 
-use std::io::{Write, Result};
-use std::time::{Duration, Instant};
-use crossterm::{
-  event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
-  terminal,
-};
+use std::io::Result;
+use crossterm::event::{KeyCode, KeyEvent};
 
 pub struct Joueur {
-  pub x: f64,
-  pub y: f64,
-
-  pub angle: f64, // 0° facing est, 90° facing north 
+    pub entity_id: u32,
+    pub max_speed: f64,
+    pub max_rotation_speed: f64,
 }
+
 impl Joueur {
-
-  pub fn new() -> Result<Self> {
-    let now = Instant::now();
-    Ok( Self {
-      x : 4.0,
-      y : 11.0,
-      angle: 0.0,
-    })
-  }
-
-  pub fn handle_input(&mut self, key_event: KeyEvent, level: &crate::level::Level) -> Result<()> {
-    let max_speed = 0.2;
-    let max_rotation_speed = 5.0;
-
-    match key_event.code {
-      KeyCode::Up => {
-        let new_x = self.x + self.angle.to_radians().cos() * max_speed;
-        let new_y = self.y + self.angle.to_radians().sin() * max_speed;
-        self.try_move(new_x, new_y, level);
-      }
-      KeyCode::Down => {
-        let new_x = self.x - self.angle.to_radians().cos() * max_speed;
-        let new_y = self.y - self.angle.to_radians().sin() * max_speed;
-        self.try_move(new_x, new_y, level);
-      }
-      KeyCode::Right => {
-        let new_x = self.x + (self.angle + 90.0).to_radians().cos() * max_speed;
-        let new_y = self.y + (self.angle + 90.0).to_radians().sin() * max_speed;
-        self.try_move(new_x, new_y, level);
-      }
-      KeyCode::Left => {
-        let new_x = self.x + (self.angle - 90.0).to_radians().cos() * max_speed;
-        let new_y = self.y + (self.angle - 90.0).to_radians().sin() * max_speed;
-        self.try_move(new_x, new_y, level);
-      }
-      KeyCode::Char('w') => {
-        self.angle += max_rotation_speed;
-        if self.angle >= 360.0 { self.angle -= 360.0; }
-      }
-      KeyCode::Char('x') => {
-        self.angle -= max_rotation_speed;
-        if self.angle < 0.0 { self.angle += 360.0; }
-      }
-      _ => {}
+    pub fn new() -> Result<Self> {
+        Ok(Self {
+            entity_id: 0, // Will be set when spawned in world
+            max_speed: 0.2,
+            max_rotation_speed: 5.0,
+        })
     }
 
-    Ok(())
-  }
-
-  fn try_move(&mut self, new_x: f64, new_y: f64, level: &crate::level::Level) {
-    // Check wall collision directly - no boundary check needed since walls are at edges
-    let grid_x = new_x as usize;
-    let grid_y = new_y as usize;
-    
-    if grid_x < level.layout[0].len() && grid_y < level.layout.len() {
-      if level.layout[grid_y][grid_x] == 0 {
-        self.x = new_x;
-        self.y = new_y;
-      }
+    pub fn process_input(&self, key_event: KeyEvent) -> PlayerInput {
+        match key_event.code {
+            KeyCode::Up => PlayerInput::MoveForward,
+            KeyCode::Down => PlayerInput::MoveBackward,
+            KeyCode::Right => PlayerInput::StrafeRight,
+            KeyCode::Left => PlayerInput::StrafeLeft,
+            KeyCode::Char('w') => PlayerInput::RotateLeft,
+            KeyCode::Char('x') => PlayerInput::RotateRight,
+            _ => PlayerInput::None,
+        }
     }
-  }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum PlayerInput {
+    MoveForward,
+    MoveBackward,
+    StrafeLeft,
+    StrafeRight,
+    RotateLeft,
+    RotateRight,
+    None,
 }

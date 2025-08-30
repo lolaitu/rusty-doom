@@ -5,7 +5,7 @@ use crossterm::{
 	style::{Print, Color, SetBackgroundColor},
   };
   
-  use crate::player::Joueur;
+  use crate::entity::Entity;
   
   pub struct Level {
 	pub layout: Vec<Vec<u8>>,
@@ -30,17 +30,17 @@ use crossterm::{
 	  Ok(())
 	}
   
-	pub fn print_with_player(&self, player: &Joueur) -> Result<(), std::io::Error> {
+	pub fn print_with_player_entity(&self, player: &Entity) -> Result<(), std::io::Error> {
 	  let (width, height) = self.size;
-	  let (player_x, player_y) = (player.x as u32, player.y as u32);
+	  let (player_x, player_y) = (player.transform.x as u32, player.transform.y as u32);
 	  for y in 0..height {
 		for x in 0..width {
 		  let cell = self.layout[y as usize][x as usize];
 		  let color = if cell != 0 { Color::White } else { Color::Black };
 		  let symbol = if x == player_x && y == player_y {
-			if      45.  < player.angle && player.angle <= 135. {"°°"}
-			else if 135. < player.angle && player.angle <= 225. {":-"}
-			else if 225. < player.angle && player.angle <= 315. {".."}
+			if      45.  < player.transform.angle && player.transform.angle <= 135. {"°°"}
+			else if 135. < player.transform.angle && player.transform.angle <= 225. {":-"}
+			else if 225. < player.transform.angle && player.transform.angle <= 315. {".."}
 			else                                                {"-:"}
 		  } else {"  "};
 		  queue!(std::io::stdout(),

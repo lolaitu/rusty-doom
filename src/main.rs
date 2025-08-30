@@ -24,18 +24,19 @@ mod graphics;
 
 mod level;
 mod player;
+mod entity;
+mod world;
 
 
 fn main() -> Result<()>{
-
   terminal_init()?;
 
-  let test = level::Level::debug_1()?;
-
-  let mut my_game = Game::new(test)?;
+  let level = level::Level::debug_1()?;
+  let mut game = Game::new(level)?;
   
+  // main program loop
   loop {
-    // Check for Ctrl+C in main
+    // check for Ctrl+C in main
     if event::poll(Duration::from_millis(1))? {
       if let Event::Key(key_event) = event::read()? {
         if key_event.code == KeyCode::Char('c') &&
@@ -43,16 +44,16 @@ fn main() -> Result<()>{
         {
           break;
         }
-        // Pass non-system keys to game
-        my_game.handle_input(key_event)?;
+        // pass non-system keys to game
+        game.handle_input(key_event)?;
       }
     }
-    
-    if my_game.update()? {
+    // check if the game is over
+    if game.update()? {
       break;
     }
   }
-
+  // clean the terminal before ending the program
   terminal_cleanup()?;
 
   Ok(())
@@ -70,7 +71,6 @@ fn terminal_init() -> Result<()> {
 }
 
 fn terminal_cleanup() -> Result<()> {
-
   execute!(std::io::stdout(),
     LeaveAlternateScreen,
     Show

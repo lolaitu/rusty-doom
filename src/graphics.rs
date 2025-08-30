@@ -11,16 +11,17 @@ pub fn draw(game: &Game, stdout: &mut Stdout) -> Result<()>  {
   let fov  = 60.0; // field of view in degrees
   let ray_angle_increment: f64 = fov as f64 / game.term_size.0 as f64;
 
-  for x in 0..game.term_size.0 {
-    // Calculate ray angle (player angle +/- half FOV)
-    let ray_angle = game.joueur.angle + 2.0 * std::f64::consts::PI - (fov / 2.0) + (x as f64 * ray_angle_increment);
+  if let Some(player) = game.world.get_player() {
+    for x in 0..game.term_size.0 {
+      // Calculate ray angle (player angle +/- half FOV)
+      let ray_angle = player.transform.angle + 2.0 * std::f64::consts::PI - (fov / 2.0) + (x as f64 * ray_angle_increment);
 
-    // Calculate ray direction vectors
-    let ray_dir_x = ray_angle.to_radians().cos();
-    let ray_dir_y = ray_angle.to_radians().sin();
-    // Ray starting position (player position)
-    let mut ray_x = game.joueur.x;
-    let mut ray_y = game.joueur.y;
+      // Calculate ray direction vectors
+      let ray_dir_x = ray_angle.to_radians().cos();
+      let ray_dir_y = ray_angle.to_radians().sin();
+      // Ray starting position (player position)
+      let mut ray_x = player.transform.x;
+      let mut ray_y = player.transform.y;
 
     // Cast ray until we hit a wall
     let mut distance = 0.0;
@@ -61,6 +62,7 @@ pub fn draw(game: &Game, stdout: &mut Stdout) -> Result<()>  {
           break;
         }
       }
+    }
     }
   }
   Ok(())
