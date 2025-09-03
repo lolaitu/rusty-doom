@@ -140,8 +140,10 @@ impl Joueur {
             KeyCode::Down => PlayerInput::MoveBackward,
             KeyCode::Right => PlayerInput::StrafeRight,
             KeyCode::Left => PlayerInput::StrafeLeft,
-            KeyCode::Char('w') => PlayerInput::RotateLeft,
-            KeyCode::Char('x') => PlayerInput::RotateRight,
+            KeyCode::Char('x') => PlayerInput::RotateLeft,
+            KeyCode::Char('w') => PlayerInput::RotateRight,
+            KeyCode::Char(' ') => PlayerInput::Shoot,
+            KeyCode::Char('r') => PlayerInput::Reload,
             _ => PlayerInput::None,
         }
     }
@@ -155,5 +157,7 @@ pub enum PlayerInput {
     StrafeRight,
     RotateLeft,
     RotateRight,
+    Shoot,
+    Reload,
     None,
 }

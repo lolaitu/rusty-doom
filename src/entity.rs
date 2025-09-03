@@ -34,6 +34,14 @@ pub struct Entity {
     pub speed: f64,
     pub health: i32,
     pub active: bool,
+    pub sprite_type: SpriteType,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum SpriteType {
+    None,
+    EnemyImp,
+    EnemyDemon,
 }
 
 impl Entity {
@@ -45,10 +53,11 @@ impl Entity {
             speed: 0.2,
             health: 100,
             active: true,
+            sprite_type: SpriteType::None,
         }
     }
 
-    pub fn new_enemy(id: u32, x: f64, y: f64) -> Self {
+    pub fn new_enemy(id: u32, x: f64, y: f64, sprite_type: SpriteType) -> Self {
         Self {
             id,
             entity_type: EntityType::Enemy,
@@ -56,6 +65,19 @@ impl Entity {
             speed: 0.1,
             health: 50,
             active: true,
+            sprite_type,
+        }
+    }
+
+    pub fn new_projectile(id: u32, x: f64, y: f64, angle: f64) -> Self {
+        Self {
+            id,
+            entity_type: EntityType::Projectile,
+            transform: Transform::new(x, y, angle),
+            speed: 10.0, // Fast projectile speed
+            health: 1,  // Projectile dies on impact
+            active: true,
+            sprite_type: SpriteType::None,
         }
     }
 }

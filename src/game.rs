@@ -8,6 +8,7 @@ use crate::level::Level;
 use crate::player::{Joueur, PlayerInput};
 use crate::world::World;
 use crate::entity::Entity;
+use crate::weapon::Weapon;
 use crate::graphics;
 
 pub struct Game {
@@ -19,6 +20,7 @@ pub struct Game {
   pub world: World,
   pub joueur: Joueur,
   pub player_entity_id: u32,
+  pub weapon: Weapon,
 
   pub term_size: (u16, u16),
 }
@@ -32,6 +34,11 @@ impl Game {
     // Spawn player entity in world
     let player_entity = Entity::new_player(0, 4.0, 11.0);
     let player_entity_id = world.spawn_entity(player_entity);
+    
+    // Spawn some test enemies
+    //world.spawn_enemy(10.0, 15.0, crate::entity::SpriteType::EnemyImp);
+    //world.spawn_enemy(8.0, 8.0, crate::entity::SpriteType::EnemyDemon);
+    //world.spawn_enemy(18.0, 12.0, crate::entity::SpriteType::EnemyImp);
 
     Ok(Self {
       time_of_launch: now,
@@ -41,6 +48,7 @@ impl Game {
       world,
       joueur,
       player_entity_id,
+      weapon: Weapon::new_pistol(),
       term_size: terminal::size()?,
     })
   }
@@ -67,6 +75,22 @@ impl Game {
       PlayerInput::RotateRight => {
         self.world.rotate_entity(self.player_entity_id, -self.joueur.max_rotation_speed);
       }
+      PlayerInput::Shoot => {
+        if self.weapon.fire() {
+          // Spawn projectile from gun barrel position (slightly forward from player)
+          if let Some(player) = self.world.get_entity(self.player_entity_id) {
+            let radians = player.transform.angle.to_radians();
+            let gun_offset = 0.5; // Distance from player center to gun barrel
+            let spawn_x = player.transform.x + radians.cos() * gun_offset;
+            let spawn_y = player.transform.y + radians.sin() * gun_offset;
+            
+            self.world.spawn_projectile(spawn_x, spawn_y, player.transform.angle);
+          }
+        }
+      }
+      PlayerInput::Reload => {
+        self.weapon.reload();
+      }
       PlayerInput::None => {}
     }
     
@@ -82,7 +106,10 @@ impl Game {
     self.time_of_last_loop = Instant::now();
 
     // Update world physics
-    self.world.update(self.time_delta.as_secs_f64());
+    self.world.update(self.time_delta.as_secs_f64(), &self.level);
+    
+    // Update weapon animation
+    self.weapon.update();
 
     // Cap at ~35 FPS like original Doom
     std::thread::sleep(Duration::from_millis(28));

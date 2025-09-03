@@ -26,6 +26,7 @@ mod level;
 mod player;
 mod entity;
 mod world;
+mod weapon;
 
 
 fn main() -> Result<()>{

@@ -52,6 +52,8 @@ cargo test
 
 - Arrow keys: Player movement (forward/back/strafe)
 - W/X keys: Rotate player left/right  
+- Space: Shoot weapon
+- R: Reload weapon
 - Ctrl+C: Exit game
 
 ## Terminal Optimization

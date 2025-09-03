@@ -1,6 +1,6 @@
 use std::io::Result;
 use std::collections::HashMap;
-use crate::entity::{Entity, EntityType, Transform};
+use crate::entity::{Entity, EntityType, Transform, SpriteType};
 use crate::level::Level;
 
 pub struct World {
@@ -95,23 +95,72 @@ impl World {
         }
     }
 
-    pub fn update(&mut self, delta_time: f64) {
-        // Future: AI updates, physics simulation, etc.
-        for entity in self.entities.values_mut() {
+    pub fn spawn_projectile(&mut self, x: f64, y: f64, angle: f64) -> u32 {
+        let projectile = Entity::new_projectile(0, x, y, angle);
+        self.spawn_entity(projectile)
+    }
+
+    pub fn update(&mut self, delta_time: f64, level: &Level) {
+        let mut entities_to_remove = Vec::new();
+        let mut projectile_updates = Vec::new();
+        
+        // Collect projectile updates first
+        for entity in self.entities.values() {
             if !entity.active {
                 continue;
             }
 
-            // Future: Add AI behavior for enemies
             match entity.entity_type {
-                EntityType::Enemy => {
-                    // TODO: AI movement logic
-                }
                 EntityType::Projectile => {
-                    // TODO: Projectile physics
+                    let radians = entity.transform.angle.to_radians();
+                    let new_x = entity.transform.x + radians.cos() * entity.speed * delta_time;
+                    let new_y = entity.transform.y + radians.sin() * entity.speed * delta_time;
+                    
+                    // Check collision with walls
+                    if self.can_move_to(new_x, new_y, level) {
+                        projectile_updates.push((entity.id, new_x, new_y));
+                    } else {
+                        // Projectile hit wall - mark for removal
+                        entities_to_remove.push(entity.id);
+                    }
+                    
+                    // Remove projectiles that travel too far
+                    if new_x < 0.0 || new_y < 0.0 || new_x > 24.0 || new_y > 24.0 {
+                        entities_to_remove.push(entity.id);
+                    }
                 }
                 _ => {}
             }
         }
+        
+        // Apply projectile position updates
+        for (id, new_x, new_y) in projectile_updates {
+            if let Some(entity) = self.entities.get_mut(&id) {
+                entity.transform.x = new_x;
+                entity.transform.y = new_y;
+            }
+        }
+        
+        // Remove dead projectiles
+        for id in entities_to_remove {
+            self.entities.remove(&id);
+        }
+    }
+
+    pub fn get_projectiles(&self) -> Vec<&Entity> {
+        self.entities.values()
+            .filter(|e| e.entity_type == EntityType::Projectile && e.active)
+            .collect()
+    }
+
+    pub fn get_enemies(&self) -> Vec<&Entity> {
+        self.entities.values()
+            .filter(|e| e.entity_type == EntityType::Enemy && e.active)
+            .collect()
+    }
+
+    pub fn spawn_enemy(&mut self, x: f64, y: f64, sprite_type: SpriteType) -> u32 {
+        let enemy = Entity::new_enemy(0, x, y, sprite_type);
+        self.spawn_entity(enemy)
     }
 }
