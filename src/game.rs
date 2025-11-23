@@ -97,7 +97,7 @@ impl Game {
     Ok(())
   }
 
-  pub fn update(&mut self) -> Result<bool> {
+  pub fn update(&mut self, render_buffer: &mut graphics::RenderBuffer) -> Result<bool> {
     let mut write = std::io::stdout();
 
     self.term_size = terminal::size()?;
@@ -116,7 +116,8 @@ impl Game {
 
     // Render 3D raycasting view
     let mut stdout = std::io::stdout();
-    graphics::draw(self, &mut stdout)?;
+    graphics::draw(self, render_buffer)?;
+    render_buffer.flush(&mut stdout)?;
 
     write.flush()?;
 

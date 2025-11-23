@@ -35,6 +35,9 @@ fn main() -> Result<()>{
   let level = level::Level::debug_1()?;
   let mut game = Game::new(level)?;
   
+  let (w, h) = terminal::size()?;
+  let mut render_buffer = graphics::RenderBuffer::new(w, h);
+  
   // main program loop
   loop {
     // check for Ctrl+C in main
@@ -50,7 +53,7 @@ fn main() -> Result<()>{
       }
     }
     // check if the game is over
-    if game.update()? {
+    if game.update(&mut render_buffer)? {
       break;
     }
   }

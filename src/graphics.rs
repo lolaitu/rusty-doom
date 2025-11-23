@@ -3,6 +3,7 @@ use std::io::Stdout;
 use crossterm::{
   cursor::MoveTo, execute, queue, style::{Color, Print, SetBackgroundColor}
 };
+use rayon::prelude::*;
 
 use crate::game::Game;
 use crate::weapon::WeaponSprite;
@@ -23,12 +24,129 @@ pub struct SpriteProjection {
 }
 
 
-pub fn draw(game: &Game, stdout: &mut Stdout) -> Result<()>  {
+pub struct RenderBuffer {
+    pub width: u16,
+    pub height: u16,
+    pub buffer: Vec<Vec<(Color, char)>>,
+    pub depth_buffer: Vec<f64>,
+}
+
+impl RenderBuffer {
+    pub fn new(width: u16, height: u16) -> Self {
+        Self {
+            width,
+            height,
+            buffer: vec![vec![(Color::Reset, ' '); width as usize]; height as usize],
+            depth_buffer: vec![0.0; width as usize],
+        }
+    }
+
+    pub fn resize(&mut self, width: u16, height: u16) {
+        if self.width != width || self.height != height {
+            self.width = width;
+            self.height = height;
+            self.buffer = vec![vec![(Color::Reset, ' '); width as usize]; height as usize];
+            self.depth_buffer = vec![0.0; width as usize];
+        }
+    }
+    
+    pub fn clear(&mut self) {
+        for row in self.buffer.iter_mut() {
+            for cell in row.iter_mut() {
+                *cell = (Color::Reset, ' ');
+            }
+        }
+        for depth in self.depth_buffer.iter_mut() {
+            *depth = f64::MAX;
+        }
+    }
+
+    pub fn set(&mut self, x: u16, y: u16, color: Color, ch: char) {
+        if x < self.width && y < self.height {
+            self.buffer[y as usize][x as usize] = (color, ch);
+        }
+    }
+
+    pub fn flush(&self, stdout: &mut Stdout) -> Result<()> {
+        queue!(stdout, MoveTo(0, 0))?;
+        let mut current_color = Color::Reset;
+        
+        for y in 0..self.height {
+            queue!(stdout, MoveTo(0, y))?;
+            for x in 0..self.width {
+                let (color, ch) = self.buffer[y as usize][x as usize];
+                if color != current_color {
+                    queue!(stdout, SetBackgroundColor(color))?;
+                    current_color = color;
+                }
+                queue!(stdout, Print(ch))?;
+            }
+        }
+        execute!(stdout)?;
+        Ok(())
+    }
+}
+
+pub fn draw(game: &Game, buffer: &mut RenderBuffer) -> Result<()>  {
   let fov = 60.0_f64;
   let ray_angle_increment = fov / game.term_size.0 as f64;
+  
+  // Resize buffer if needed
+  buffer.resize(game.term_size.0, game.term_size.1);
+  buffer.clear(); // Important to clear depth buffer
 
   if let Some(player) = game.world.get_player() {
-    // Pre-calculate sprite projections
+    // 1. CAST RAYS & DRAW WALLS
+    // Parallelize the raycasting calculation
+    let column_data: Vec<(usize, f64, u8, u16, u16)> = (0..game.term_size.0)
+        .into_par_iter()
+        .map(|x| {
+            let angle_offset = (x as f64 - game.term_size.0 as f64 / 2.0) * ray_angle_increment;
+            let ray_angle = player.transform.angle + angle_offset;
+
+            let (wall_distance, wall_type) = cast_wall_ray(
+                player.transform.x, 
+                player.transform.y, 
+                ray_angle, 
+                &game.level
+            );
+
+            let wall_height = if wall_distance > 0.1 { 
+                (game.term_size.1 as f64 * 6.0) / wall_distance
+            } else { 
+                game.term_size.1 as f64 
+            };
+
+            let wall_start = ((game.term_size.1 as f64 - wall_height) / 2.0).max(0.0) as u16;
+            let wall_end = ((game.term_size.1 as f64 + wall_height) / 2.0).min(game.term_size.1 as f64) as u16;
+            
+            (x as usize, wall_distance, wall_type, wall_start, wall_end)
+        })
+        .collect();
+
+    // Sequential drawing to buffer (fast enough, and buffer isn't thread-safe for random access without locking)
+    for (x, wall_distance, wall_type, wall_start, wall_end) in column_data {
+      let x = x as u16;
+      
+      // Store depth for sprite occlusion
+      if x < buffer.width {
+          buffer.depth_buffer[x as usize] = wall_distance;
+      }
+      
+      // Draw vertical strip
+      for y in 0..game.term_size.1 {
+          let color = if y < wall_start {
+              Color::Rgb { r: 30, g: 50, b: 100 } // Sky
+          } else if y < wall_end {
+              get_wall_color(wall_distance, wall_type) // Wall
+          } else {
+              get_floor_color(wall_distance) // Floor
+          };
+          buffer.set(x, y, color, ' ');
+      }
+    }
+
+    // 2. PREPARE SPRITES
     let mut sprite_projections = Vec::new();
     
     // Project all enemies
@@ -49,67 +167,33 @@ pub fn draw(game: &Game, stdout: &mut Stdout) -> Result<()>  {
       }
     }
     
-    // Sort sprites by distance (farthest first for proper depth sorting)
+    // Sort sprites by distance (farthest first)
     sprite_projections.sort_by(|a, b| b.distance.partial_cmp(&a.distance).unwrap());
 
-    // Pre-calculate all wall rays
-    let mut column_data = Vec::with_capacity(game.term_size.0 as usize);
-    
-    for x in 0..game.term_size.0 {
-      let angle_offset = (x as f64 - game.term_size.0 as f64 / 2.0) * ray_angle_increment;
-      let ray_angle = player.transform.angle + angle_offset;
-
-      let (wall_distance, wall_type) = cast_wall_ray(
-        player.transform.x, 
-        player.transform.y, 
-        ray_angle, 
-        &game.level
-      );
-
-      let wall_height = if wall_distance > 0.1 { 
-        (game.term_size.1 as f64 * 6.0) / wall_distance
-      } else { 
-        game.term_size.1 as f64 
-      };
-
-      let wall_start = ((game.term_size.1 as f64 - wall_height) / 2.0).max(0.0) as u16;
-      let wall_end = ((game.term_size.1 as f64 + wall_height) / 2.0).min(game.term_size.1 as f64) as u16;
-      
-      column_data.push((wall_distance, wall_type, wall_start, wall_end));
-    }
-
-    // Draw row by row for better terminal performance
-    for y in 0..game.term_size.1 {
-      queue!(stdout, MoveTo(0, y))?;
-      for x in 0..game.term_size.0 {
-        let (wall_distance, wall_type, wall_start, wall_end) = column_data[x as usize];
+    // 3. DRAW SPRITES
+    for sprite in sprite_projections {
+        let brightness = get_distance_brightness(sprite.distance);
+        let color = get_sprite_color(sprite.sprite_type, brightness);
         
-        // Check if there's a sprite at this pixel position
-        let sprite_color = get_sprite_color_at_pixel(x, y, &sprite_projections, wall_distance);
-        
-        let color = if let Some(sprite_col) = sprite_color {
-          sprite_col // Draw sprite (already depth tested)
-        } else if y < wall_start {
-          Color::Rgb { r: 30, g: 50, b: 100 } // Sky
-        } else if y < wall_end {
-          get_wall_color(wall_distance, wall_type) // Wall
-        } else {
-          get_floor_color(wall_distance) // Floor
-        };
-
-        queue!(stdout, SetBackgroundColor(color), Print(" "))?;
-      }
+        for x in sprite.left_column..=sprite.right_column {
+            if x < buffer.width {
+                // Z-Buffer check
+                if sprite.distance < buffer.depth_buffer[x as usize] {
+                    for y in sprite.top_row..=sprite.bottom_row {
+                        buffer.set(x, y, color, ' ');
+                    }
+                }
+            }
+        }
     }
     
     // Draw weapon sprite overlay in bottom center
-    draw_weapon_sprite(game, stdout)?;
-    
-    execute!(stdout)?;
+    draw_weapon_sprite(game, buffer)?;
   }
   Ok(())
 }
 
-pub fn draw_weapon_sprite(game: &Game, stdout: &mut Stdout) -> Result<()> {
+pub fn draw_weapon_sprite(game: &Game, buffer: &mut RenderBuffer) -> Result<()> {
   let weapon_sprite = game.weapon.get_current_sprite();
   
   // Position weapon at bottom center of screen
@@ -119,8 +203,6 @@ pub fn draw_weapon_sprite(game: &Game, stdout: &mut Stdout) -> Result<()> {
   for (line_idx, line) in weapon_sprite.lines.iter().enumerate() {
     let y = start_y + line_idx as u16;
     if y < game.term_size.1 {
-      queue!(stdout, MoveTo(start_x, y))?;
-      
       for (char_idx, character) in line.chars().enumerate() {
         if character != ' ' { // Only draw non-transparent pixels
           let color = if char_idx < weapon_sprite.colors[line_idx].len() {
@@ -129,10 +211,7 @@ pub fn draw_weapon_sprite(game: &Game, stdout: &mut Stdout) -> Result<()> {
             Color::Rgb { r: 100, g: 100, b: 100 }
           };
           
-          queue!(stdout, SetBackgroundColor(color), Print(" "))?;
-        } else {
-          // Transparent pixel - move cursor forward
-          queue!(stdout, MoveTo(start_x + char_idx as u16 + 1, y))?;
+          buffer.set(start_x + char_idx as u16, y, color, ' ');
         }
       }
     }
@@ -201,30 +280,79 @@ fn cast_wall_ray(start_x: f64, start_y: f64, angle: f64, level: &crate::level::L
   let ray_dir_x = angle.to_radians().cos();
   let ray_dir_y = angle.to_radians().sin();
   
-  let mut ray_x = start_x;
-  let mut ray_y = start_y;
-  let step_size = 0.05;
-  let mut distance = 0.0;
+  let mut map_x = start_x.floor() as i32;
+  let mut map_y = start_y.floor() as i32;
 
-  while distance < 20.0 {
-    ray_x += ray_dir_x * step_size;
-    ray_y += ray_dir_y * step_size;
-    distance += step_size;
+  // Delta distance calculation (distance ray has to travel to go from 1 x-side to the next x-side)
+  let delta_dist_x = if ray_dir_x == 0.0 { 1e30 } else { (1.0 / ray_dir_x).abs() };
+  let delta_dist_y = if ray_dir_y == 0.0 { 1e30 } else { (1.0 / ray_dir_y).abs() };
 
-    let map_x = ray_x as usize;
-    let map_y = ray_y as usize;
-    
-    if map_y < level.layout.len() && map_x < level.layout[0].len() {
-      let wall_type = level.layout[map_y][map_x];
-      if wall_type > 0 {
-        return (distance, wall_type);
+  let mut step_x;
+  let mut side_dist_x;
+  
+  if ray_dir_x < 0.0 {
+    step_x = -1;
+    side_dist_x = (start_x - map_x as f64) * delta_dist_x;
+  } else {
+    step_x = 1;
+    side_dist_x = (map_x as f64 + 1.0 - start_x) * delta_dist_x;
+  }
+
+  let mut step_y;
+  let mut side_dist_y;
+  
+  if ray_dir_y < 0.0 {
+    step_y = -1;
+    side_dist_y = (start_y - map_y as f64) * delta_dist_y;
+  } else {
+    step_y = 1;
+    side_dist_y = (map_y as f64 + 1.0 - start_y) * delta_dist_y;
+  }
+
+  let mut hit = false;
+  let mut side = 0; // 0 for NS, 1 for EW
+  let mut wall_type = 0;
+
+  // DDA Loop
+  let max_steps = 50;
+  let mut steps = 0;
+  
+  while !hit && steps < max_steps {
+    steps += 1;
+    // Jump to next map square, OR in x-direction, OR in y-direction
+    if side_dist_x < side_dist_y {
+      side_dist_x += delta_dist_x;
+      map_x += step_x;
+      side = 0;
+    } else {
+      side_dist_y += delta_dist_y;
+      map_y += step_y;
+      side = 1;
+    }
+
+    // Check if ray has hit a wall
+    if map_y >= 0 && map_y < level.layout.len() as i32 && 
+       map_x >= 0 && map_x < level.layout[0].len() as i32 {
+      let w = level.layout[map_y as usize][map_x as usize];
+      if w > 0 {
+        hit = true;
+        wall_type = w;
       }
     } else {
-      return (distance, 1); // Hit boundary
+      // Hit boundary
+      hit = true;
+      wall_type = 1;
     }
   }
-  
-  (20.0, 0) // Max distance, no wall
+
+  // Calculate distance projected on camera direction (Euclidean distance would give fisheye effect!)
+  let perp_wall_dist = if side == 0 {
+    (side_dist_x - delta_dist_x)
+  } else {
+    (side_dist_y - delta_dist_y)
+  };
+
+  (perp_wall_dist, wall_type)
 }
 
 
@@ -287,27 +415,7 @@ fn project_sprite_to_screen(
   })
 }
 
-fn get_sprite_color_at_pixel(
-  x: u16, 
-  y: u16, 
-  sprite_projections: &[SpriteProjection], 
-  wall_distance: f64
-) -> Option<Color> {
-  // Check all sprites from nearest to farthest (already sorted)
-  for projection in sprite_projections {
-    // Check if this pixel is within sprite bounds
-    if x >= projection.left_column && x <= projection.right_column &&
-       y >= projection.top_row && y <= projection.bottom_row {
-      
-      // Depth test: only render if sprite is closer than wall
-      if projection.distance < wall_distance {
-        let brightness = get_distance_brightness(projection.distance);
-        return Some(get_sprite_color(projection.sprite_type, brightness));
-      }
-    }
-  }
-  None
-}
+
 
 fn get_sprite_color(sprite_type: SpriteType, brightness: f64) -> Color {
   match sprite_type {
