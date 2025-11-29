@@ -5,11 +5,12 @@ use crossterm::{
   terminal,
 };
 use crate::level::Level;
-use crate::player::{Joueur, PlayerInput};
+use crate::player::Joueur;
 use crate::world::World;
 use crate::entity::Entity;
 use crate::weapon::Weapon;
 use crate::graphics;
+use crate::input::{InputManager, Action};
 
 pub struct Game {
   pub time_of_launch: Instant,
@@ -53,29 +54,34 @@ impl Game {
     })
   }
 
-  pub fn handle_input(&mut self, key_event: KeyEvent) -> Result<()> {
-    let input = self.joueur.process_input(key_event);
-    
-    match input {
-      PlayerInput::MoveForward => {
+  pub fn update(&mut self, render_buffer: &mut graphics::RenderBuffer, input_manager: &InputManager) -> Result<bool> {
+    let mut write = std::io::stdout();
+
+    self.term_size = terminal::size()?;
+
+    self.time_delta = self.time_of_last_loop.elapsed();
+    self.time_of_last_loop = Instant::now();
+
+    // Handle inputs
+    if input_manager.is_active(Action::MoveForward) {
         self.world.move_entity_forward(self.player_entity_id, self.joueur.max_speed, &self.level);
-      }
-      PlayerInput::MoveBackward => {
+    }
+    if input_manager.is_active(Action::MoveBackward) {
         self.world.move_entity_forward(self.player_entity_id, -self.joueur.max_speed, &self.level);
-      }
-      PlayerInput::StrafeRight => {
+    }
+    if input_manager.is_active(Action::StrafeRight) {
         self.world.strafe_entity(self.player_entity_id, self.joueur.max_speed, &self.level);
-      }
-      PlayerInput::StrafeLeft => {
+    }
+    if input_manager.is_active(Action::StrafeLeft) {
         self.world.strafe_entity(self.player_entity_id, -self.joueur.max_speed, &self.level);
-      }
-      PlayerInput::RotateLeft => {
+    }
+    if input_manager.is_active(Action::RotateLeft) {
         self.world.rotate_entity(self.player_entity_id, self.joueur.max_rotation_speed);
-      }
-      PlayerInput::RotateRight => {
+    }
+    if input_manager.is_active(Action::RotateRight) {
         self.world.rotate_entity(self.player_entity_id, -self.joueur.max_rotation_speed);
-      }
-      PlayerInput::Shoot => {
+    }
+    if input_manager.is_active(Action::Shoot) {
         if self.weapon.fire() {
           // Spawn projectile from gun barrel position (slightly forward from player)
           if let Some(player) = self.world.get_entity(self.player_entity_id) {
@@ -87,23 +93,12 @@ impl Game {
             self.world.spawn_projectile(spawn_x, spawn_y, player.transform.angle);
           }
         }
-      }
-      PlayerInput::Reload => {
-        self.weapon.reload();
-      }
-      PlayerInput::None => {}
     }
-    
-    Ok(())
-  }
+    if input_manager.is_active(Action::Reload) {
+        self.weapon.reload();
+    }
 
-  pub fn update(&mut self, render_buffer: &mut graphics::RenderBuffer) -> Result<bool> {
-    let mut write = std::io::stdout();
 
-    self.term_size = terminal::size()?;
-
-    self.time_delta = self.time_of_last_loop.elapsed();
-    self.time_of_last_loop = Instant::now();
 
     // Update world physics
     self.world.update(self.time_delta.as_secs_f64(), &self.level);

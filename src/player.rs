@@ -117,7 +117,6 @@ impl Player {
 */
 
 use std::io::Result;
-use crossterm::event::{KeyCode, KeyEvent};
 
 pub struct Joueur {
     pub entity_id: u32,
@@ -133,31 +132,4 @@ impl Joueur {
             max_rotation_speed: 5.0,
         })
     }
-
-    pub fn process_input(&self, key_event: KeyEvent) -> PlayerInput {
-        match key_event.code {
-            KeyCode::Up => PlayerInput::MoveForward,
-            KeyCode::Down => PlayerInput::MoveBackward,
-            KeyCode::Right => PlayerInput::StrafeRight,
-            KeyCode::Left => PlayerInput::StrafeLeft,
-            KeyCode::Char('x') => PlayerInput::RotateLeft,
-            KeyCode::Char('w') => PlayerInput::RotateRight,
-            KeyCode::Char(' ') => PlayerInput::Shoot,
-            KeyCode::Char('r') => PlayerInput::Reload,
-            _ => PlayerInput::None,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum PlayerInput {
-    MoveForward,
-    MoveBackward,
-    StrafeLeft,
-    StrafeRight,
-    RotateLeft,
-    RotateRight,
-    Shoot,
-    Reload,
-    None,
 }

@@ -27,45 +27,56 @@ mod player;
 mod entity;
 mod world;
 mod weapon;
+mod input;
+use input::{InputManager, Action};
 
-
+// Main program loop
 fn main() -> Result<()>{
+  // Initialize terminal
   terminal_init()?;
 
+  // Load level
   let level = level::Level::debug_1()?;
+  // Create game instance
   let mut game = Game::new(level)?;
-  
+
+  // Get the terminal size
   let (w, h) = terminal::size()?;
+  // Create a render buffer
   let mut render_buffer = graphics::RenderBuffer::new(w, h);
   
-  // main program loop
+  let mut input_manager = InputManager::new();
+
+  // Main game loop
   loop {
-    // check for Ctrl+C in main
-    if event::poll(Duration::from_millis(1))? {
-      if let Event::Key(key_event) = event::read()? {
-        if key_event.code == KeyCode::Char('c') &&
-          key_event.modifiers.contains(KeyModifiers::CONTROL)
-        {
-          break;
-        }
-        // pass non-system keys to game
-        game.handle_input(key_event)?;
-      }
+    // Poll inputs using device_query
+    input_manager.update();
+    
+    while event::poll(Duration::from_millis(0))? {
+        let _ = event::read()?; // Drain events
     }
-    // check if the game is over
-    if game.update(&mut render_buffer)? {
+    
+    // Check for Ctrl+C
+    if input_manager.is_active(Action::Quit) {
+        break;
+    }
+    
+    // update the game and check if it is over
+    if game.update(&mut render_buffer, &input_manager)? {
       break;
     }
   }
+
   // clean the terminal before ending the program
   terminal_cleanup()?;
-
   Ok(())
 }
 
 fn terminal_init() -> Result<()> {
+  // Enable raw mode
   terminal::enable_raw_mode()?;
 
+  // Enter alternate screen
   execute!(std::io::stdout(),
     EnterAlternateScreen,
     Hide
@@ -75,11 +86,13 @@ fn terminal_init() -> Result<()> {
 }
 
 fn terminal_cleanup() -> Result<()> {
+  // Exit alternate screen
   execute!(std::io::stdout(),
     LeaveAlternateScreen,
     Show
   )?;
 
+  // Disable raw mode
   terminal::disable_raw_mode()?;
 
   Ok(())
