@@ -37,9 +37,9 @@ impl Game {
     let player_entity_id = world.spawn_entity(player_entity);
     
     // Spawn some test enemies
-    //world.spawn_enemy(10.0, 15.0, crate::entity::SpriteType::EnemyImp);
-    //world.spawn_enemy(8.0, 8.0, crate::entity::SpriteType::EnemyDemon);
-    //world.spawn_enemy(18.0, 12.0, crate::entity::SpriteType::EnemyImp);
+    world.spawn_enemy(10.0, 15.0, crate::entity::SpriteType::EnemyImp);
+    world.spawn_enemy(8.0, 8.0, crate::entity::SpriteType::EnemyDemon);
+    world.spawn_enemy(18.0, 12.0, crate::entity::SpriteType::EnemyImp);
 
     Ok(Self {
       time_of_launch: now,
@@ -97,8 +97,6 @@ impl Game {
     if input_manager.is_active(Action::Reload) {
         self.weapon.reload();
     }
-
-
 
     // Update world physics
     self.world.update(self.time_delta.as_secs_f64(), &self.level);

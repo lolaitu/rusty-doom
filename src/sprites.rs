@@ -1,0 +1,211 @@
+use crossterm::style::Color;
+use crate::entity::SpriteType;
+
+#[derive(Clone)]
+pub struct Sprite {
+    pub width: usize,
+    pub height: usize,
+    pub pixels: Vec<Option<Color>>, // None for transparent
+}
+
+impl Sprite {
+    pub fn new(width: usize, height: usize, pixels: Vec<Option<Color>>) -> Self {
+        Self { width, height, pixels }
+    }
+
+    pub fn get_pixel(&self, u: f64, v: f64) -> Option<Color> {
+        let x = (u * self.width as f64).floor() as usize;
+        let y = (v * self.height as f64).floor() as usize;
+        
+        if x < self.width && y < self.height {
+            self.pixels[y * self.width + x]
+        } else {
+            None
+        }
+    }
+}
+
+pub fn get_sprite_frame(sprite_type: SpriteType, frame: usize) -> Sprite {
+    match sprite_type {
+        SpriteType::EnemyImp => {
+            let frames = [create_imp_sprite_frame1(), create_imp_sprite_frame2()];
+            frames[frame % 2].clone()
+        },
+        SpriteType::EnemyDemon => {
+            let frames = [create_demon_sprite_frame1(), create_demon_sprite_frame2()];
+            frames[frame % 2].clone()
+        },
+        SpriteType::None => create_projectile_sprite(),
+    }
+}
+
+pub fn get_animation_duration(sprite_type: SpriteType) -> f64 {
+    match sprite_type {
+        SpriteType::EnemyImp => 0.5, // 0.5 seconds per frame
+        SpriteType::EnemyDemon => 0.4,
+        _ => 1.0,
+    }
+}
+
+fn create_imp_sprite_frame1() -> Sprite {
+    // 8x8 Imp Sprite (Frame 1 - Arms down)
+    let width = 8;
+    let height = 8;
+    let mut pixels = vec![None; width * height];
+    
+    let c1 = Some(Color::Rgb { r: 139, g: 69, b: 19 }); // SaddleBrown
+    let c2 = Some(Color::Rgb { r: 205, g: 133, b: 63 }); // Peru (lighter)
+    let c3 = Some(Color::Rgb { r: 255, g: 69, b: 0 });   // RedOrange (eyes)
+
+    let pattern = [
+        0, 0, 1, 1, 1, 1, 0, 0,
+        0, 1, 1, 1, 1, 1, 1, 0,
+        1, 1, 3, 1, 1, 3, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+        0, 1, 2, 2, 2, 2, 1, 0,
+        0, 1, 2, 1, 1, 2, 1, 0,
+        0, 1, 1, 0, 0, 1, 1, 0,
+        0, 1, 0, 0, 0, 0, 1, 0,
+    ];
+
+    for (i, &p) in pattern.iter().enumerate() {
+        pixels[i] = match p {
+            1 => c1,
+            2 => c2,
+            3 => c3,
+            _ => None,
+        };
+    }
+    
+    Sprite::new(width, height, pixels)
+}
+
+fn create_imp_sprite_frame2() -> Sprite {
+    // 8x8 Imp Sprite (Frame 2 - Arms up)
+    let width = 8;
+    let height = 8;
+    let mut pixels = vec![None; width * height];
+    
+    let c1 = Some(Color::Rgb { r: 139, g: 69, b: 19 }); 
+    let c2 = Some(Color::Rgb { r: 205, g: 133, b: 63 }); 
+    let c3 = Some(Color::Rgb { r: 255, g: 69, b: 0 });   
+
+    let pattern = [
+        0, 0, 1, 1, 1, 1, 0, 0,
+        0, 1, 1, 1, 1, 1, 1, 0,
+        1, 1, 3, 1, 1, 3, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 2, 2, 2, 2, 1, 1, // Arms wider
+        1, 0, 2, 1, 1, 2, 0, 1,
+        0, 0, 1, 0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0, 1, 0, 0,
+    ];
+
+    for (i, &p) in pattern.iter().enumerate() {
+        pixels[i] = match p {
+            1 => c1,
+            2 => c2,
+            3 => c3,
+            _ => None,
+        };
+    }
+    
+    Sprite::new(width, height, pixels)
+}
+
+fn create_demon_sprite_frame1() -> Sprite {
+    // 10x10 Demon Sprite (Frame 1)
+    let width = 10;
+    let height = 10;
+    let mut pixels = vec![None; width * height];
+    
+    let c1 = Some(Color::Rgb { r: 178, g: 34, b: 34 });  
+    let c2 = Some(Color::Rgb { r: 255, g: 105, b: 180 }); 
+    let c3 = Some(Color::Rgb { r: 50, g: 205, b: 50 });  
+
+    let pattern = [
+        0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
+        0, 0, 1, 1, 2, 2, 1, 1, 0, 0,
+        0, 1, 1, 1, 2, 2, 1, 1, 1, 0,
+        1, 1, 3, 1, 1, 1, 1, 3, 1, 1,
+        1, 1, 1, 1, 2, 2, 1, 1, 1, 1,
+        1, 2, 2, 2, 2, 2, 2, 2, 2, 1,
+        0, 1, 1, 1, 2, 2, 1, 1, 1, 0,
+        0, 1, 1, 0, 1, 1, 0, 1, 1, 0,
+        0, 1, 0, 0, 1, 1, 0, 0, 1, 0,
+        0, 0, 0, 0, 1, 1, 0, 0, 0, 0,
+    ];
+
+    for (i, &p) in pattern.iter().enumerate() {
+        pixels[i] = match p {
+            1 => c1,
+            2 => c2,
+            3 => c3,
+            _ => None,
+        };
+    }
+    
+    Sprite::new(width, height, pixels)
+}
+
+fn create_demon_sprite_frame2() -> Sprite {
+    // 10x10 Demon Sprite (Frame 2 - Mouth open/move)
+    let width = 10;
+    let height = 10;
+    let mut pixels = vec![None; width * height];
+    
+    let c1 = Some(Color::Rgb { r: 178, g: 34, b: 34 });  
+    let c2 = Some(Color::Rgb { r: 255, g: 105, b: 180 }); 
+    let c3 = Some(Color::Rgb { r: 50, g: 205, b: 50 });  
+
+    let pattern = [
+        0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
+        0, 0, 1, 1, 2, 2, 1, 1, 0, 0,
+        0, 1, 1, 1, 2, 2, 1, 1, 1, 0,
+        1, 1, 3, 1, 1, 1, 1, 3, 1, 1,
+        1, 1, 1, 1, 2, 2, 1, 1, 1, 1,
+        1, 2, 2, 2, 0, 0, 2, 2, 2, 1, // Mouth open
+        0, 1, 1, 1, 2, 2, 1, 1, 1, 0,
+        0, 1, 1, 0, 1, 1, 0, 1, 1, 0,
+        0, 0, 1, 0, 1, 1, 0, 1, 0, 0, // Legs move
+        0, 0, 0, 0, 1, 1, 0, 0, 0, 0,
+    ];
+
+    for (i, &p) in pattern.iter().enumerate() {
+        pixels[i] = match p {
+            1 => c1,
+            2 => c2,
+            3 => c3,
+            _ => None,
+        };
+    }
+    
+    Sprite::new(width, height, pixels)
+}
+
+fn create_projectile_sprite() -> Sprite {
+    // 4x4 Projectile (Fireball)
+    let width = 4;
+    let height = 4;
+    let mut pixels = vec![None; width * height];
+    
+    let c1 = Some(Color::Rgb { r: 255, g: 69, b: 0 });   // RedOrange
+    let c2 = Some(Color::Rgb { r: 255, g: 215, b: 0 });  // Gold
+
+    let pattern = [
+        0, 1, 1, 0,
+        1, 2, 2, 1,
+        1, 2, 2, 1,
+        0, 1, 1, 0,
+    ];
+
+    for (i, &p) in pattern.iter().enumerate() {
+        pixels[i] = match p {
+            1 => c1,
+            2 => c2,
+            _ => None,
+        };
+    }
+    
+    Sprite::new(width, height, pixels)
+}

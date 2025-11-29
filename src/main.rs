@@ -25,6 +25,7 @@ mod graphics;
 mod level;
 mod player;
 mod entity;
+mod sprites;
 mod world;
 mod weapon;
 mod input;

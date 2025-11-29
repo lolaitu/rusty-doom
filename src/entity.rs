@@ -35,6 +35,8 @@ pub struct Entity {
     pub health: i32,
     pub active: bool,
     pub sprite_type: SpriteType,
+    pub animation_timer: f64,
+    pub current_frame: usize,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -54,6 +56,8 @@ impl Entity {
             health: 100,
             active: true,
             sprite_type: SpriteType::None,
+            animation_timer: 0.0,
+            current_frame: 0,
         }
     }
 
@@ -66,6 +70,8 @@ impl Entity {
             health: 50,
             active: true,
             sprite_type,
+            animation_timer: 0.0,
+            current_frame: 0,
         }
     }
 
@@ -78,6 +84,8 @@ impl Entity {
             health: 1,  // Projectile dies on impact
             active: true,
             sprite_type: SpriteType::None,
+            animation_timer: 0.0,
+            current_frame: 0,
         }
     }
 }

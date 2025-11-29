@@ -145,6 +145,18 @@ impl World {
         for id in entities_to_remove {
             self.entities.remove(&id);
         }
+
+        // Update animations
+        for entity in self.entities.values_mut() {
+            if entity.active {
+                entity.animation_timer += delta_time;
+                let duration = crate::sprites::get_animation_duration(entity.sprite_type);
+                if entity.animation_timer >= duration {
+                    entity.animation_timer -= duration;
+                    entity.current_frame += 1;
+                }
+            }
+        }
     }
 
     pub fn get_projectiles(&self) -> Vec<&Entity> {

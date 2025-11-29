@@ -8,6 +8,7 @@ use rayon::prelude::*;
 use crate::game::Game;
 use crate::weapon::WeaponSprite;
 use crate::entity::{Entity, SpriteType};
+use crate::sprites::{get_sprite_frame, Sprite};
 
 #[derive(Debug, Clone)]
 pub struct SpriteProjection {
@@ -21,8 +22,8 @@ pub struct SpriteProjection {
     pub top_row: u16,
     pub bottom_row: u16,
     pub sprite_type: SpriteType,
+    pub frame: usize,
 }
-
 
 pub struct RenderBuffer {
     pub width: u16,
@@ -171,16 +172,25 @@ pub fn draw(game: &Game, buffer: &mut RenderBuffer) -> Result<()>  {
     sprite_projections.sort_by(|a, b| b.distance.partial_cmp(&a.distance).unwrap());
 
     // 3. DRAW SPRITES
-    for sprite in sprite_projections {
-        let brightness = get_distance_brightness(sprite.distance);
-        let color = get_sprite_color(sprite.sprite_type, brightness);
+    for sprite_proj in sprite_projections {
+        let sprite = get_sprite_frame(sprite_proj.sprite_type, sprite_proj.frame);
+        let brightness = get_distance_brightness(sprite_proj.distance);
         
-        for x in sprite.left_column..=sprite.right_column {
+        for x in sprite_proj.left_column..=sprite_proj.right_column {
             if x < buffer.width {
                 // Z-Buffer check
-                if sprite.distance < buffer.depth_buffer[x as usize] {
-                    for y in sprite.top_row..=sprite.bottom_row {
-                        buffer.set(x, y, color, ' ');
+                if sprite_proj.distance < buffer.depth_buffer[x as usize] {
+                    // Calculate U coordinate (horizontal texture coordinate 0.0 to 1.0)
+                    let u = (x as f64 - (sprite_proj.screen_x - sprite_proj.screen_width / 2.0)) / sprite_proj.screen_width;
+                    
+                    for y in sprite_proj.top_row..=sprite_proj.bottom_row {
+                        // Calculate V coordinate (vertical texture coordinate 0.0 to 1.0)
+                        let v = (y as f64 - (sprite_proj.screen_y - sprite_proj.screen_height / 2.0)) / sprite_proj.screen_height;
+                        
+                        if let Some(base_color) = sprite.get_pixel(u, v) {
+                            let color = darken_color_by_brightness(base_color, brightness);
+                            buffer.set(x, y, color, ' ');
+                        }
                     }
                 }
             }
@@ -191,6 +201,13 @@ pub fn draw(game: &Game, buffer: &mut RenderBuffer) -> Result<()>  {
     draw_weapon_sprite(game, buffer)?;
   }
   Ok(())
+}
+
+fn darken_color_by_brightness(color: Color, brightness: f64) -> Color {
+    match color {
+        Color::Rgb { r, g, b } => darken_color(r, g, b, brightness),
+        _ => color,
+    }
 }
 
 pub fn draw_weapon_sprite(game: &Game, buffer: &mut RenderBuffer) -> Result<()> {
@@ -412,15 +429,8 @@ fn project_sprite_to_screen(
     top_row: top as u16,
     bottom_row: bottom as u16,
     sprite_type: sprite_entity.sprite_type,
+    frame: sprite_entity.current_frame,
   })
 }
 
 
-
-fn get_sprite_color(sprite_type: SpriteType, brightness: f64) -> Color {
-  match sprite_type {
-    SpriteType::EnemyImp => darken_color(200, 100, 50, brightness), // Orange/brown imp
-    SpriteType::EnemyDemon => darken_color(150, 50, 50, brightness), // Dark red demon
-    SpriteType::None => darken_color(255, 200, 0, brightness), // Yellow projectile
-  }
-}
