@@ -1,5 +1,5 @@
 use crossterm::style::Color;
-use crate::entity::SpriteType;
+use crate::entity::{SpriteType, EntityState};
 
 #[derive(Clone)]
 pub struct Sprite {
@@ -25,8 +25,8 @@ impl Sprite {
     }
 }
 
-pub fn get_sprite_frame(sprite_type: SpriteType, frame: usize) -> Sprite {
-    match sprite_type {
+pub fn get_sprite_frame(sprite_type: SpriteType, frame: usize, state: EntityState) -> Sprite {
+    let mut sprite = match sprite_type {
         SpriteType::EnemyImp => {
             let frames = [create_imp_sprite_frame1(), create_imp_sprite_frame2()];
             frames[frame % 2].clone()
@@ -36,7 +36,35 @@ pub fn get_sprite_frame(sprite_type: SpriteType, frame: usize) -> Sprite {
             frames[frame % 2].clone()
         },
         SpriteType::None => create_projectile_sprite(),
+    };
+
+    // Apply state effects
+    match state {
+        EntityState::Hit => {
+            // Flash white/bright
+            for pixel in sprite.pixels.iter_mut() {
+                if let Some(color) = pixel {
+                    *color = Color::Rgb { r: 255, g: 255, b: 255 };
+                }
+            }
+        },
+        EntityState::Dying => {
+            // Darken or turn red for death
+            for pixel in sprite.pixels.iter_mut() {
+                if let Some(color) = pixel {
+                    match color {
+                        Color::Rgb { r, g, b } => {
+                            *color = Color::Rgb { r: *r / 2, g: *g / 2, b: *b / 2 };
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        },
+        _ => {}
     }
+
+    sprite
 }
 
 pub fn get_animation_duration(sprite_type: SpriteType) -> f64 {

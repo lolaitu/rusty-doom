@@ -25,6 +25,21 @@ pub enum EntityType {
     Projectile,
 }
 
+pub const PLAYER_SPEED: f64 = 0.2;
+pub const ENEMY_SPEED: f64 = 0.1;
+pub const PROJECTILE_SPEED: f64 = 10.0;
+pub const PLAYER_HEALTH: i32 = 100;
+pub const ENEMY_HEALTH: i32 = 50;
+pub const PROJECTILE_HEALTH: i32 = 1;
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum EntityState {
+    Idle,
+    Hit,
+    Dying,
+    Dead,
+}
+
 // structure that stores entities stats
 #[derive(Clone)]
 pub struct Entity {
@@ -37,6 +52,7 @@ pub struct Entity {
     pub sprite_type: SpriteType,
     pub animation_timer: f64,
     pub current_frame: usize,
+    pub state: EntityState,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -52,12 +68,13 @@ impl Entity {
             id,
             entity_type: EntityType::Player,
             transform: Transform::new(x, y, 0.0),
-            speed: 0.2,
-            health: 100,
+            speed: PLAYER_SPEED,
+            health: PLAYER_HEALTH,
             active: true,
             sprite_type: SpriteType::None,
             animation_timer: 0.0,
             current_frame: 0,
+            state: EntityState::Idle,
         }
     }
 
@@ -66,12 +83,13 @@ impl Entity {
             id,
             entity_type: EntityType::Enemy,
             transform: Transform::new(x, y, 0.0),
-            speed: 0.1,
-            health: 50,
+            speed: ENEMY_SPEED,
+            health: ENEMY_HEALTH,
             active: true,
             sprite_type,
             animation_timer: 0.0,
             current_frame: 0,
+            state: EntityState::Idle,
         }
     }
 
@@ -80,12 +98,30 @@ impl Entity {
             id,
             entity_type: EntityType::Projectile,
             transform: Transform::new(x, y, angle),
-            speed: 10.0, // Fast projectile speed
-            health: 1,  // Projectile dies on impact
+            speed: PROJECTILE_SPEED,
+            health: PROJECTILE_HEALTH,
             active: true,
             sprite_type: SpriteType::None,
             animation_timer: 0.0,
             current_frame: 0,
+            state: EntityState::Idle,
+        }
+    }
+
+    pub fn take_damage(&mut self, amount: i32) {
+        if self.state == EntityState::Dying || self.state == EntityState::Dead {
+            return;
+        }
+
+        self.health -= amount;
+        if self.health <= 0 {
+            self.state = EntityState::Dying;
+            self.current_frame = 0;
+            self.animation_timer = 0.0;
+        } else {
+            self.state = EntityState::Hit;
+            self.current_frame = 0; // Reset frame to show hit effect immediately
+            self.animation_timer = 0.0;
         }
     }
 }

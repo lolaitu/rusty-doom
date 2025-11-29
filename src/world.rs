@@ -142,20 +142,90 @@ impl World {
         }
         
         // Remove dead projectiles
-        for id in entities_to_remove {
-            self.entities.remove(&id);
+        for id in &entities_to_remove {
+            self.entities.remove(id);
         }
+        entities_to_remove.clear();
 
-        // Update animations
+        // Update animations and states
         for entity in self.entities.values_mut() {
-            if entity.active {
-                entity.animation_timer += delta_time;
-                let duration = crate::sprites::get_animation_duration(entity.sprite_type);
-                if entity.animation_timer >= duration {
-                    entity.animation_timer -= duration;
-                    entity.current_frame += 1;
+            if !entity.active { continue; }
+
+            // Handle State Transitions
+            match entity.state {
+                crate::entity::EntityState::Hit => {
+                    entity.animation_timer += delta_time;
+                    if entity.animation_timer >= 0.2 { // Hit flash duration
+                        entity.state = crate::entity::EntityState::Idle;
+                        entity.animation_timer = 0.0;
+                    }
+                },
+                crate::entity::EntityState::Dying => {
+                    entity.animation_timer += delta_time;
+                    if entity.animation_timer >= 0.5 { // Death animation duration
+                        entity.state = crate::entity::EntityState::Dead;
+                        entity.active = false; // Mark for removal
+                    }
+                },
+                _ => {
+                    // Normal animation for Idle/Moving
+                    entity.animation_timer += delta_time;
+                    let duration = crate::sprites::get_animation_duration(entity.sprite_type);
+                    if entity.animation_timer >= duration {
+                        entity.animation_timer -= duration;
+                        entity.current_frame += 1;
+                    }
                 }
             }
+        }
+
+        // Collision Detection: Projectiles vs Enemies
+        let mut hits = Vec::new();
+        
+        // Collect active projectiles and enemies
+        let projectiles: Vec<(u32, f64, f64)> = self.entities.values()
+            .filter(|e| e.entity_type == EntityType::Projectile && e.active)
+            .map(|e| (e.id, e.transform.x, e.transform.y))
+            .collect();
+            
+        let enemies: Vec<(u32, f64, f64)> = self.entities.values()
+            .filter(|e| e.entity_type == EntityType::Enemy && e.active && e.state != crate::entity::EntityState::Dying && e.state != crate::entity::EntityState::Dead)
+            .map(|e| (e.id, e.transform.x, e.transform.y))
+            .collect();
+
+        for (p_id, p_x, p_y) in projectiles {
+            for (e_id, e_x, e_y) in &enemies {
+                let dist_sq = (p_x - e_x).powi(2) + (p_y - e_y).powi(2);
+                if dist_sq < 0.1 { // Hit radius squared
+                    hits.push((p_id, *e_id));
+                    break; // Projectile hits first enemy
+                }
+            }
+        }
+
+        // Apply hits
+        for (p_id, e_id) in hits {
+            // Remove projectile
+            if let Some(proj) = self.entities.get_mut(&p_id) {
+                proj.active = false;
+            }
+            entities_to_remove.push(p_id);
+
+            // Damage enemy
+            if let Some(enemy) = self.entities.get_mut(&e_id) {
+                enemy.take_damage(20); // Pistol damage
+            }
+        }
+        
+        // Remove dead entities
+        let mut dead_ids = Vec::new();
+        for (id, entity) in &self.entities {
+            if !entity.active {
+                dead_ids.push(*id);
+            }
+        }
+        for id in dead_ids {
+            self.entities.remove(&id);
         }
     }
 
@@ -174,5 +244,27 @@ impl World {
     pub fn spawn_enemy(&mut self, x: f64, y: f64, sprite_type: SpriteType) -> u32 {
         let enemy = Entity::new_enemy(0, x, y, sprite_type);
         self.spawn_entity(enemy)
+    }
+
+    pub fn respawn_enemies(&mut self) {
+        // Remove only enemies and projectiles, keep the player
+        let ids_to_remove: Vec<u32> = self.entities.iter()
+            .filter(|(_, e)| e.entity_type == EntityType::Enemy || e.entity_type == EntityType::Projectile)
+            .map(|(id, _)| *id)
+            .collect();
+
+        for id in ids_to_remove {
+            self.entities.remove(&id);
+        }
+
+        // Spawn default enemies
+        self.spawn_enemy(10.0, 15.0, SpriteType::EnemyImp);
+        self.spawn_enemy(8.0, 8.0, SpriteType::EnemyDemon);
+        self.spawn_enemy(18.0, 12.0, SpriteType::EnemyImp);
+    }
+
+    pub fn reset(&mut self) {
+        self.entities.clear();
+        self.respawn_enemies();
     }
 }

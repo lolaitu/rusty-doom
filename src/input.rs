@@ -13,6 +13,8 @@ pub enum Action {
     RotateRight,
     Shoot,
     Reload,
+    RespawnEnemies,
+    RespawnPlayer,
     Quit,
     None,
 }
@@ -63,6 +65,9 @@ impl InputManager {
         }
         if keys.contains(&Keycode::R) {
             self.active_actions.insert(Action::Reload);
+        }
+        if keys.contains(&Keycode::P) {
+            self.active_actions.insert(Action::RespawnEnemies);
         }
 
         // Quit: Ctrl + C

@@ -7,7 +7,7 @@ use rayon::prelude::*;
 
 use crate::game::Game;
 use crate::weapon::WeaponSprite;
-use crate::entity::{Entity, SpriteType};
+use crate::entity::{Entity, SpriteType, EntityState};
 use crate::sprites::{get_sprite_frame, Sprite};
 
 #[derive(Debug, Clone)]
@@ -23,6 +23,7 @@ pub struct SpriteProjection {
     pub bottom_row: u16,
     pub sprite_type: SpriteType,
     pub frame: usize,
+    pub state: EntityState,
 }
 
 pub struct RenderBuffer {
@@ -173,7 +174,7 @@ pub fn draw(game: &Game, buffer: &mut RenderBuffer) -> Result<()>  {
 
     // 3. DRAW SPRITES
     for sprite_proj in sprite_projections {
-        let sprite = get_sprite_frame(sprite_proj.sprite_type, sprite_proj.frame);
+        let sprite = get_sprite_frame(sprite_proj.sprite_type, sprite_proj.frame, sprite_proj.state);
         let brightness = get_distance_brightness(sprite_proj.distance);
         
         for x in sprite_proj.left_column..=sprite_proj.right_column {
@@ -430,6 +431,7 @@ fn project_sprite_to_screen(
     bottom_row: bottom as u16,
     sprite_type: sprite_entity.sprite_type,
     frame: sprite_entity.current_frame,
+    state: sprite_entity.state,
   })
 }
 

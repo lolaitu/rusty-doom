@@ -97,6 +97,9 @@ impl Game {
     if input_manager.is_active(Action::Reload) {
         self.weapon.reload();
     }
+    if input_manager.is_active(Action::RespawnEnemies) {
+        self.world.respawn_enemies();
+    }
 
     // Update world physics
     self.world.update(self.time_delta.as_secs_f64(), &self.level);
