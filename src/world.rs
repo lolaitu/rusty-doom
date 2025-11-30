@@ -100,9 +100,10 @@ impl World {
         self.spawn_entity(projectile)
     }
 
-    pub fn update(&mut self, delta_time: f64, level: &Level) {
+    pub fn update(&mut self, delta_time: f64, level: &Level) -> u32 {
         let mut entities_to_remove = Vec::new();
         let mut projectile_updates = Vec::new();
+        let mut kills = 0;
         
         // Collect projectile updates first
         let entity_ids: Vec<u32> = self.entities.keys().cloned().collect();
@@ -177,6 +178,9 @@ impl World {
                     if entity.animation_timer >= 0.5 { // Death animation duration
                         entity.state = crate::entity::EntityState::Dead;
                         entity.active = false; // Mark for removal
+                        if entity.entity_type == EntityType::Enemy {
+                            kills += 1;
+                        }
                     }
                 },
                 _ => {
@@ -239,6 +243,8 @@ impl World {
         for id in dead_ids {
             self.entities.remove(&id);
         }
+        
+        kills
     }
 
     pub fn get_projectiles(&self) -> Vec<&Entity> {

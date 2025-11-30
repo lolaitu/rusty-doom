@@ -11,6 +11,7 @@ pub struct Player {
     pub weapons: Vec<Weapon>,
     pub current_weapon: usize,
     pub switch_cooldown_expiry: Instant,
+    pub kills: u32,
 }
 
 impl Player {
@@ -23,6 +24,7 @@ impl Player {
             weapons: vec![Weapon::new_pistol(), Weapon::new_shotgun(), Weapon::new_gatling(), Weapon::new_shotgun()],
             current_weapon: 0,
             switch_cooldown_expiry: Instant::now(),
+            kills: 0,
         })
     }
 

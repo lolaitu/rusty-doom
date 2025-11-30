@@ -200,8 +200,48 @@ pub fn draw(game: &Game, buffer: &mut RenderBuffer) -> Result<()>  {
     
     // Draw weapon sprite overlay in bottom center
     draw_weapon_sprite(game, buffer)?;
+    
+    // Draw HUD
+    draw_hud(game, buffer)?;
   }
   Ok(())
+}
+
+fn draw_hud(game: &Game, buffer: &mut RenderBuffer) -> Result<()> {
+    // Health (Bottom Left, Red)
+    let health_color = Color::Rgb { r: 255, g: 0, b: 0 };
+    draw_number(buffer, 2, game.term_size.1 - 6, game.player.health, health_color);
+    
+    // Ammo (Bottom Right, Yellow)
+    let ammo_color = Color::Rgb { r: 255, g: 255, b: 0 };
+    let ammo = game.player.get_current_weapon().ammo;
+    draw_number(buffer, game.term_size.0 - 14, game.term_size.1 - 6, ammo, ammo_color);
+    
+    // Kills (Top Right, Green)
+    let kills_color = Color::Rgb { r: 0, g: 255, b: 0 };
+    draw_number(buffer, game.term_size.0 - 10, 2, game.player.kills, kills_color);
+    
+    Ok(())
+}
+
+fn draw_number(buffer: &mut RenderBuffer, start_x: u16, start_y: u16, number: u32, color: Color) {
+    let s = number.to_string();
+    let mut x_offset = 0;
+    
+    for c in s.chars() {
+        if let Some(digit) = c.to_digit(10) {
+            let sprite = crate::sprites::get_digit_sprite(digit, color);
+            
+            for (i, pixel) in sprite.pixels.iter().enumerate() {
+                if let Some(p_color) = pixel {
+                    let x = i % sprite.width;
+                    let y = i / sprite.width;
+                    buffer.set(start_x + x_offset + x as u16, start_y + y as u16, *p_color, ' ');
+                }
+            }
+            x_offset += (sprite.width + 1) as u16; // +1 for spacing
+        }
+    }
 }
 
 fn darken_color_by_brightness(color: Color, brightness: f64) -> Color {

@@ -312,3 +312,92 @@ fn create_projectile_gatling() -> Sprite {
     
     Sprite::new(width, height, pixels)
 }
+
+pub fn get_digit_sprite(digit: u32, color: Color) -> Sprite {
+    let width = 3;
+    let height = 5;
+    let mut pixels = vec![None; width * height];
+    let c = Some(color);
+
+    let pattern = match digit {
+        0 => [
+            1, 1, 1,
+            1, 0, 1,
+            1, 0, 1,
+            1, 0, 1,
+            1, 1, 1,
+        ],
+        1 => [
+            0, 1, 0,
+            0, 1, 0,
+            0, 1, 0,
+            0, 1, 0,
+            0, 1, 0,
+        ],
+        2 => [
+            1, 1, 1,
+            0, 0, 1,
+            1, 1, 1,
+            1, 0, 0,
+            1, 1, 1,
+        ],
+        3 => [
+            1, 1, 1,
+            0, 0, 1,
+            1, 1, 1,
+            0, 0, 1,
+            1, 1, 1,
+        ],
+        4 => [
+            1, 0, 1,
+            1, 0, 1,
+            1, 1, 1,
+            0, 0, 1,
+            0, 0, 1,
+        ],
+        5 => [
+            1, 1, 1,
+            1, 0, 0,
+            1, 1, 1,
+            0, 0, 1,
+            1, 1, 1,
+        ],
+        6 => [
+            1, 1, 1,
+            1, 0, 0,
+            1, 1, 1,
+            1, 0, 1,
+            1, 1, 1,
+        ],
+        7 => [
+            1, 1, 1,
+            0, 0, 1,
+            0, 0, 1,
+            0, 0, 1,
+            0, 0, 1,
+        ],
+        8 => [
+            1, 1, 1,
+            1, 0, 1,
+            1, 1, 1,
+            1, 0, 1,
+            1, 1, 1,
+        ],
+        9 => [
+            1, 1, 1,
+            1, 0, 1,
+            1, 1, 1,
+            0, 0, 1,
+            1, 1, 1,
+        ],
+        _ => [0; 15],
+    };
+
+    for (i, &p) in pattern.iter().enumerate() {
+        if p == 1 {
+            pixels[i] = c;
+        }
+    }
+    
+    Sprite::new(width, height, pixels)
+}

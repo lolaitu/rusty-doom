@@ -174,7 +174,8 @@ impl Game {
     }
 
     // Update world physics
-    self.world.update(delta_time, &self.level);
+    let kills = self.world.update(delta_time, &self.level);
+    self.player.kills += kills;
     
     // Update player animation
     self.player.animation_update();
