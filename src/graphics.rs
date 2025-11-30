@@ -212,11 +212,32 @@ fn darken_color_by_brightness(color: Color, brightness: f64) -> Color {
 }
 
 pub fn draw_weapon_sprite(game: &Game, buffer: &mut RenderBuffer) -> Result<()> {
-  let weapon_sprite = game.weapon.get_current_sprite();
+  let weapon_sprite = game.player.get_current_weapon().get_current_sprite();
   
+  // Handle switching animation
+  let now = std::time::Instant::now();
+  let mut y_offset = 0;
+  
+  if now < game.player.switch_cooldown_expiry {
+      let remaining = game.player.switch_cooldown_expiry.duration_since(now).as_millis() as f64;
+      let total = 500.0; // Total cooldown duration
+      let progress = 1.0 - (remaining / total);
+      
+      if progress < 0.5 {
+          // First half: Weapon is hidden (or moving down)
+          return Ok(());
+      } else {
+          // Second half: Weapon rises up
+          // Normalize progress from 0.5-1.0 to 0.0-1.0
+          let rise_progress = (progress - 0.5) * 2.0;
+          let max_offset = weapon_sprite.height as i32;
+          y_offset = (max_offset as f64 * (1.0 - rise_progress)) as i32;
+      }
+  }
+
   // Position weapon at bottom center of screen
   let start_x = (game.term_size.0 / 2).saturating_sub(weapon_sprite.width as u16 / 2);
-  let start_y = game.term_size.1.saturating_sub(weapon_sprite.height as u16);
+  let start_y = (game.term_size.1 as i32).saturating_sub(weapon_sprite.height as i32).saturating_add(y_offset) as u16;
 
   for (line_idx, line) in weapon_sprite.lines.iter().enumerate() {
     let y = start_y + line_idx as u16;

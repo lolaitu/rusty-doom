@@ -41,7 +41,7 @@ impl World {
     }
 
     pub fn try_move_entity(&mut self, entity_id: u32, new_x: f64, new_y: f64, level: &Level) -> bool {
-        if self.can_move_to(new_x, new_y, level) {
+        if Self::can_move_to(new_x, new_y, level) {
             if let Some(entity) = self.entities.get_mut(&entity_id) {
                 entity.transform.x = new_x;
                 entity.transform.y = new_y;
@@ -84,7 +84,7 @@ impl World {
         }
     }
 
-    fn can_move_to(&self, x: f64, y: f64, level: &Level) -> bool {
+    fn can_move_to(x: f64, y: f64, level: &Level) -> bool {
         let grid_x = x as usize;
         let grid_y = y as usize;
         
@@ -95,8 +95,8 @@ impl World {
         }
     }
 
-    pub fn spawn_projectile(&mut self, x: f64, y: f64, angle: f64) -> u32 {
-        let projectile = Entity::new_projectile(0, x, y, angle);
+    pub fn spawn_projectile(&mut self, x: f64, y: f64, angle: f64, damage: i32, max_distance: f64, sprite_type: SpriteType) -> u32 {
+        let projectile = Entity::new_projectile(0, x, y, angle, damage, max_distance, sprite_type);
         self.spawn_entity(projectile)
     }
 
@@ -105,31 +105,43 @@ impl World {
         let mut projectile_updates = Vec::new();
         
         // Collect projectile updates first
-        for entity in self.entities.values() {
-            if !entity.active {
-                continue;
-            }
-
-            match entity.entity_type {
-                EntityType::Projectile => {
-                    let radians = entity.transform.angle.to_radians();
-                    let new_x = entity.transform.x + radians.cos() * entity.speed * delta_time;
-                    let new_y = entity.transform.y + radians.sin() * entity.speed * delta_time;
-                    
-                    // Check collision with walls
-                    if self.can_move_to(new_x, new_y, level) {
-                        projectile_updates.push((entity.id, new_x, new_y));
-                    } else {
-                        // Projectile hit wall - mark for removal
-                        entities_to_remove.push(entity.id);
-                    }
-                    
-                    // Remove projectiles that travel too far
-                    if new_x < 0.0 || new_y < 0.0 || new_x > 24.0 || new_y > 24.0 {
-                        entities_to_remove.push(entity.id);
-                    }
+        let entity_ids: Vec<u32> = self.entities.keys().cloned().collect();
+        
+        for id in entity_ids {
+            if let Some(entity) = self.entities.get_mut(&id) {
+                if !entity.active {
+                    continue;
                 }
-                _ => {}
+
+                match entity.entity_type {
+                    EntityType::Projectile => {
+                        let radians = entity.transform.angle.to_radians();
+                        let dist_step = entity.speed * delta_time;
+                        let new_x = entity.transform.x + radians.cos() * dist_step;
+                        let new_y = entity.transform.y + radians.sin() * dist_step;
+                        
+                        entity.distance_traveled += dist_step;
+
+                        // Check collision with walls
+                        if Self::can_move_to(new_x, new_y, level) {
+                            projectile_updates.push((entity.id, new_x, new_y));
+                        } else {
+                            // Projectile hit wall - mark for removal
+                            entities_to_remove.push(entity.id);
+                        }
+                        
+                        // Remove projectiles that travel too far
+                        if entity.distance_traveled >= entity.max_distance {
+                            entities_to_remove.push(entity.id);
+                        }
+                        
+                        // Remove projectiles that travel out of bounds (safety)
+                        if new_x < 0.0 || new_y < 0.0 || new_x > 24.0 || new_y > 24.0 {
+                            entities_to_remove.push(entity.id);
+                        }
+                    }
+                    _ => {}
+                }
             }
         }
         
@@ -183,9 +195,9 @@ impl World {
         let mut hits = Vec::new();
         
         // Collect active projectiles and enemies
-        let projectiles: Vec<(u32, f64, f64)> = self.entities.values()
+        let projectiles: Vec<(u32, f64, f64, i32)> = self.entities.values()
             .filter(|e| e.entity_type == EntityType::Projectile && e.active)
-            .map(|e| (e.id, e.transform.x, e.transform.y))
+            .map(|e| (e.id, e.transform.x, e.transform.y, e.damage))
             .collect();
             
         let enemies: Vec<(u32, f64, f64)> = self.entities.values()
@@ -193,18 +205,18 @@ impl World {
             .map(|e| (e.id, e.transform.x, e.transform.y))
             .collect();
 
-        for (p_id, p_x, p_y) in projectiles {
+        for (p_id, p_x, p_y, p_damage) in projectiles {
             for (e_id, e_x, e_y) in &enemies {
                 let dist_sq = (p_x - e_x).powi(2) + (p_y - e_y).powi(2);
                 if dist_sq < 0.1 { // Hit radius squared
-                    hits.push((p_id, *e_id));
+                    hits.push((p_id, *e_id, p_damage));
                     break; // Projectile hits first enemy
                 }
             }
         }
 
         // Apply hits
-        for (p_id, e_id) in hits {
+        for (p_id, e_id, damage) in hits {
             // Remove projectile
             if let Some(proj) = self.entities.get_mut(&p_id) {
                 proj.active = false;
@@ -213,7 +225,7 @@ impl World {
 
             // Damage enemy
             if let Some(enemy) = self.entities.get_mut(&e_id) {
-                enemy.take_damage(20); // Pistol damage
+                enemy.take_damage(damage);
             }
         }
         

@@ -53,6 +53,9 @@ pub struct Entity {
     pub animation_timer: f64,
     pub current_frame: usize,
     pub state: EntityState,
+    pub max_distance: f64,
+    pub distance_traveled: f64,
+    pub damage: i32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -60,6 +63,9 @@ pub enum SpriteType {
     None,
     EnemyImp,
     EnemyDemon,
+    ProjectilePistol,
+    ProjectileShotgun,
+    ProjectileGatling,
 }
 
 impl Entity {
@@ -75,6 +81,9 @@ impl Entity {
             animation_timer: 0.0,
             current_frame: 0,
             state: EntityState::Idle,
+            max_distance: 0.0,
+            distance_traveled: 0.0,
+            damage: 0,
         }
     }
 
@@ -90,10 +99,13 @@ impl Entity {
             animation_timer: 0.0,
             current_frame: 0,
             state: EntityState::Idle,
+            max_distance: 0.0,
+            distance_traveled: 0.0,
+            damage: 0,
         }
     }
 
-    pub fn new_projectile(id: u32, x: f64, y: f64, angle: f64) -> Self {
+    pub fn new_projectile(id: u32, x: f64, y: f64, angle: f64, damage: i32, max_distance: f64, sprite_type: SpriteType) -> Self {
         Self {
             id,
             entity_type: EntityType::Projectile,
@@ -101,10 +113,13 @@ impl Entity {
             speed: PROJECTILE_SPEED,
             health: PROJECTILE_HEALTH,
             active: true,
-            sprite_type: SpriteType::None,
+            sprite_type,
             animation_timer: 0.0,
             current_frame: 0,
             state: EntityState::Idle,
+            max_distance,
+            distance_traveled: 0.0,
+            damage,
         }
     }
 

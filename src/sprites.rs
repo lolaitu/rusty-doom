@@ -36,6 +36,9 @@ pub fn get_sprite_frame(sprite_type: SpriteType, frame: usize, state: EntityStat
             frames[frame % 2].clone()
         },
         SpriteType::None => create_projectile_sprite(),
+        SpriteType::ProjectilePistol => create_projectile_pistol(),
+        SpriteType::ProjectileShotgun => create_projectile_shotgun(),
+        SpriteType::ProjectileGatling => create_projectile_gatling(),
     };
 
     // Apply state effects
@@ -231,6 +234,78 @@ fn create_projectile_sprite() -> Sprite {
         pixels[i] = match p {
             1 => c1,
             2 => c2,
+            _ => None,
+        };
+    }
+    
+    Sprite::new(width, height, pixels)
+}
+
+fn create_projectile_pistol() -> Sprite {
+    // 2x2 Small Projectile
+    let width = 2;
+    let height = 2;
+    let mut pixels = vec![None; width * height];
+    
+    let c1 = Some(Color::Rgb { r: 255, g: 255, b: 100 }); // Yellow
+
+    let pattern = [
+        1, 1,
+        1, 1,
+    ];
+
+    for (i, &p) in pattern.iter().enumerate() {
+        pixels[i] = match p {
+            1 => c1,
+            _ => None,
+        };
+    }
+    
+    Sprite::new(width, height, pixels)
+}
+
+fn create_projectile_shotgun() -> Sprite {
+    // 3x3 Projectile
+    let width = 3;
+    let height = 3;
+    let mut pixels = vec![None; width * height];
+    
+    let c1 = Some(Color::Rgb { r: 255, g: 100, b: 0 }); // Orange
+
+    let pattern = [
+        0, 1, 0,
+        1, 1, 1,
+        0, 1, 0,
+    ];
+
+    for (i, &p) in pattern.iter().enumerate() {
+        pixels[i] = match p {
+            1 => c1,
+            _ => None,
+        };
+    }
+    
+    Sprite::new(width, height, pixels)
+}
+
+fn create_projectile_gatling() -> Sprite {
+    // 2x2 Blue Projectile
+    let width = 3;
+    let height = 4;
+    let mut pixels = vec![None; width * height];
+    
+    let c1 = Some(Color::Rgb { r: 100, g: 200, b: 255 }); // Light Blue
+
+    let pattern = [
+        0, 0, 0,
+        0, 0, 0,
+        0, 1, 0,
+        0, 0, 0,
+    ];
+
+    for (i, &p) in pattern.iter().enumerate() {
+        pixels[i] = match p {
+            1 => c1,
             _ => None,
         };
     }

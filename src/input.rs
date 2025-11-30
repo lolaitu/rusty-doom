@@ -13,8 +13,12 @@ pub enum Action {
     RotateRight,
     Shoot,
     Reload,
+    SwitchWeapon1,
+    SwitchWeapon2,
+    SwitchWeapon3,
     RespawnEnemies,
     RespawnPlayer,
+    ToggleFPS,
     Quit,
     None,
 }
@@ -52,11 +56,22 @@ impl InputManager {
         }
         
         // Rotation
-        if keys.contains(&Keycode::Q) || keys.contains(&Keycode::X) {
+        if keys.contains(&Keycode::E) || keys.contains(&Keycode::X) {
             self.active_actions.insert(Action::RotateLeft);
         }
-        if keys.contains(&Keycode::E) {
+        if keys.contains(&Keycode::Q) {
             self.active_actions.insert(Action::RotateRight);
+        }
+
+        // Switch weapon
+        if keys.contains(&Keycode::Key1) {
+            self.active_actions.insert(Action::SwitchWeapon1);
+        }
+        if keys.contains(&Keycode::Key2) {
+            self.active_actions.insert(Action::SwitchWeapon2);
+        }
+        if keys.contains(&Keycode::Key3) {
+            self.active_actions.insert(Action::SwitchWeapon3);
         }
 
         // Actions
@@ -68,6 +83,9 @@ impl InputManager {
         }
         if keys.contains(&Keycode::P) {
             self.active_actions.insert(Action::RespawnEnemies);
+        }
+        if keys.contains(&Keycode::F) {
+            self.active_actions.insert(Action::ToggleFPS);
         }
 
         // Quit: Ctrl + C
