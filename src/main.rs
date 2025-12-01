@@ -25,13 +25,20 @@ use graphics::RenderBuffer;
 use graphics::draw;
 use graphics::sprites;
 
-mod level;
-mod player;
-mod entity;
-mod world;
+mod common;
+use common::level;
+use common::entity;
+use common::world;
+use common::input;
+
+use input::InputManager;
+use input::Action;
+
 mod weapon;
-mod input;
-use input::{InputManager, Action};
+use weapon::Weapon;
+
+mod player;
+use player::Player;
 
 // Main program loop
 fn main() -> Result<()>{
