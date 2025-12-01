@@ -8,7 +8,7 @@ use rayon::prelude::*;
 use crate::game::Game;
 use crate::weapon::WeaponSprite;
 use crate::entity::{Entity, SpriteType, EntityState};
-use crate::sprites::{get_sprite_frame, Sprite};
+use crate::graphics::sprites::{get_sprite_frame, Sprite};
 
 #[derive(Debug, Clone)]
 pub struct SpriteProjection {

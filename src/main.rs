@@ -21,11 +21,13 @@ mod game;
 use game::Game;
 
 mod graphics;
+use graphics::RenderBuffer;
+use graphics::draw;
+use graphics::sprites;
 
 mod level;
 mod player;
 mod entity;
-mod sprites;
 mod world;
 mod weapon;
 mod input;
@@ -44,7 +46,7 @@ fn main() -> Result<()>{
   // Get the terminal size
   let (w, h) = terminal::size()?;
   // Create a render buffer
-  let mut render_buffer = graphics::RenderBuffer::new(w, h);
+  let mut render_buffer = RenderBuffer::new(w, h);
   
   let mut input_manager = InputManager::new();
 
