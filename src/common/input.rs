@@ -19,6 +19,7 @@ pub enum Action {
     RespawnEnemies,
     RespawnPlayer,
     ToggleFPS,
+    Sprint,
     Quit,
     None,
 }
@@ -56,10 +57,10 @@ impl InputManager {
         }
         
         // Rotation
-        if keys.contains(&Keycode::E) || keys.contains(&Keycode::X) {
+        if keys.contains(&Keycode::Q) {
             self.active_actions.insert(Action::RotateLeft);
         }
-        if keys.contains(&Keycode::Q) {
+        if keys.contains(&Keycode::E) {
             self.active_actions.insert(Action::RotateRight);
         }
 
@@ -86,6 +87,9 @@ impl InputManager {
         }
         if keys.contains(&Keycode::F) {
             self.active_actions.insert(Action::ToggleFPS);
+        }
+        if keys.contains(&Keycode::LShift) || keys.contains(&Keycode::RShift) {
+            self.active_actions.insert(Action::Sprint);
         }
 
         // Quit: Ctrl + C

@@ -5,7 +5,7 @@ use crossterm::{
 };
 use rayon::prelude::*;
 
-use crate::game::Game;
+use crate::modes::solo::SoloGame;
 use crate::weapon::WeaponSprite;
 use crate::entity::{Entity, SpriteType, EntityState};
 use crate::graphics::sprites::{get_sprite_frame, Sprite};
@@ -89,44 +89,51 @@ impl RenderBuffer {
     }
 }
 
-pub fn draw(game: &Game, buffer: &mut RenderBuffer) -> Result<()>  {
+use crate::player::Player;
+use crate::common::world::World;
+
+use crate::common::level::Level;
+
+pub fn draw(world: &World, player: &Player, level: &Level, term_size: (u16, u16), buffer: &mut RenderBuffer) -> Result<()>  {
   let fov = 60.0_f64;
-  let ray_angle_increment = fov / game.term_size.0 as f64;
+  let ray_angle_increment = fov / term_size.0 as f64;
   
   // Resize buffer if needed
-  buffer.resize(game.term_size.0, game.term_size.1);
+  buffer.resize(term_size.0, term_size.1);
   buffer.clear(); // Important to clear depth buffer
 
-  if let Some(player) = game.world.get_player() {
     // 1. CAST RAYS & DRAW WALLS
     // Parallelize the raycasting calculation
-    let column_data: Vec<(usize, f64, u8, u16, u16)> = (0..game.term_size.0)
+    let column_data: Vec<(usize, f64, u8, u16, u16)> = (0..term_size.0)
         .into_par_iter()
         .map(|x| {
-            let angle_offset = (x as f64 - game.term_size.0 as f64 / 2.0) * ray_angle_increment;
+            let angle_offset = (x as f64 - term_size.0 as f64 / 2.0) * ray_angle_increment;
             let ray_angle = player.transform.angle + angle_offset;
 
             let (wall_distance, wall_type) = cast_wall_ray(
                 player.transform.x, 
                 player.transform.y, 
                 ray_angle, 
-                &game.level
+                level
             );
-
+            
+            // FIXME: Level access. For now using debug_1() as placeholder if we can't access it.
+            // But we should pass it.
+            
             let wall_height = if wall_distance > 0.1 { 
-                (game.term_size.1 as f64 * 6.0) / wall_distance
+                (term_size.1 as f64 * 6.0) / wall_distance
             } else { 
-                game.term_size.1 as f64 
+                term_size.1 as f64 
             };
 
-            let wall_start = ((game.term_size.1 as f64 - wall_height) / 2.0).max(0.0) as u16;
-            let wall_end = ((game.term_size.1 as f64 + wall_height) / 2.0).min(game.term_size.1 as f64) as u16;
+            let wall_start = ((term_size.1 as f64 - wall_height) / 2.0).max(0.0) as u16;
+            let wall_end = ((term_size.1 as f64 + wall_height) / 2.0).min(term_size.1 as f64) as u16;
             
             (x as usize, wall_distance, wall_type, wall_start, wall_end)
         })
         .collect();
 
-    // Sequential drawing to buffer (fast enough, and buffer isn't thread-safe for random access without locking)
+    // Sequential drawing to buffer
     for (x, wall_distance, wall_type, wall_start, wall_end) in column_data {
       let x = x as u16;
       
@@ -136,7 +143,7 @@ pub fn draw(game: &Game, buffer: &mut RenderBuffer) -> Result<()>  {
       }
       
       // Draw vertical strip
-      for y in 0..game.term_size.1 {
+      for y in 0..term_size.1 {
           let color = if y < wall_start {
               Color::Rgb { r: 30, g: 50, b: 100 } // Sky
           } else if y < wall_end {
@@ -152,18 +159,18 @@ pub fn draw(game: &Game, buffer: &mut RenderBuffer) -> Result<()>  {
     let mut sprite_projections = Vec::new();
     
     // Project all enemies
-    for enemy in game.world.get_enemies() {
+    for enemy in world.get_enemies() {
       if let Some(projection) = project_sprite_to_screen(
-        player, enemy, game.term_size.0, game.term_size.1, fov
+        &player.transform, enemy, term_size.0, term_size.1, fov
       ) {
         sprite_projections.push(projection);
       }
     }
     
     // Project all projectiles
-    for projectile in game.world.get_projectiles() {
+    for projectile in world.get_projectiles() {
       if let Some(projection) = project_sprite_to_screen(
-        player, projectile, game.term_size.0, game.term_size.1, fov
+        &player.transform, projectile, term_size.0, term_size.1, fov
       ) {
         sprite_projections.push(projection);
       }
@@ -181,11 +188,11 @@ pub fn draw(game: &Game, buffer: &mut RenderBuffer) -> Result<()>  {
             if x < buffer.width {
                 // Z-Buffer check
                 if sprite_proj.distance < buffer.depth_buffer[x as usize] {
-                    // Calculate U coordinate (horizontal texture coordinate 0.0 to 1.0)
+                    // Calculate U coordinate
                     let u = (x as f64 - (sprite_proj.screen_x - sprite_proj.screen_width / 2.0)) / sprite_proj.screen_width;
                     
                     for y in sprite_proj.top_row..=sprite_proj.bottom_row {
-                        // Calculate V coordinate (vertical texture coordinate 0.0 to 1.0)
+                        // Calculate V coordinate
                         let v = (y as f64 - (sprite_proj.screen_y - sprite_proj.screen_height / 2.0)) / sprite_proj.screen_height;
                         
                         if let Some(base_color) = sprite.get_pixel(u, v) {
@@ -199,27 +206,27 @@ pub fn draw(game: &Game, buffer: &mut RenderBuffer) -> Result<()>  {
     }
     
     // Draw weapon sprite overlay in bottom center
-    draw_weapon_sprite(game, buffer)?;
+    draw_weapon_sprite(player, term_size, buffer)?;
     
     // Draw HUD
-    draw_hud(game, buffer)?;
-  }
+    draw_hud(player, term_size, buffer)?;
+  
   Ok(())
 }
 
-fn draw_hud(game: &Game, buffer: &mut RenderBuffer) -> Result<()> {
+fn draw_hud(player: &Player, term_size: (u16, u16), buffer: &mut RenderBuffer) -> Result<()> {
     // Health (Bottom Left, Red)
     let health_color = Color::Rgb { r: 255, g: 0, b: 0 };
-    draw_number(buffer, 2, game.term_size.1 - 6, game.player.health, health_color);
+    draw_number(buffer, 2, term_size.1 - 6, player.health, health_color);
     
     // Ammo (Bottom Right, Yellow)
     let ammo_color = Color::Rgb { r: 255, g: 255, b: 0 };
-    let ammo = game.player.get_current_weapon().ammo;
-    draw_number(buffer, game.term_size.0 - 14, game.term_size.1 - 6, ammo, ammo_color);
+    let ammo = player.get_current_weapon().ammo;
+    draw_number(buffer, term_size.0 - 14, term_size.1 - 6, ammo, ammo_color);
     
     // Kills (Top Right, Green)
     let kills_color = Color::Rgb { r: 0, g: 255, b: 0 };
-    draw_number(buffer, game.term_size.0 - 10, 2, game.player.kills, kills_color);
+    draw_number(buffer, term_size.0 - 10, 2, player.kills, kills_color);
     
     Ok(())
 }
@@ -230,7 +237,7 @@ fn draw_number(buffer: &mut RenderBuffer, start_x: u16, start_y: u16, number: u3
     
     for c in s.chars() {
         if let Some(digit) = c.to_digit(10) {
-            let sprite = crate::sprites::get_digit_sprite(digit, color);
+            let sprite = crate::graphics::sprites::get_digit_sprite(digit, color);
             
             for (i, pixel) in sprite.pixels.iter().enumerate() {
                 if let Some(p_color) = pixel {
@@ -251,15 +258,15 @@ fn darken_color_by_brightness(color: Color, brightness: f64) -> Color {
     }
 }
 
-pub fn draw_weapon_sprite(game: &Game, buffer: &mut RenderBuffer) -> Result<()> {
-  let weapon_sprite = game.player.get_current_weapon().get_current_sprite();
+pub fn draw_weapon_sprite(player: &Player, term_size: (u16, u16), buffer: &mut RenderBuffer) -> Result<()> {
+  let weapon_sprite = player.get_current_weapon().get_current_sprite();
   
   // Handle switching animation
   let now = std::time::Instant::now();
   let mut y_offset = 0;
   
-  if now < game.player.switch_cooldown_expiry {
-      let remaining = game.player.switch_cooldown_expiry.duration_since(now).as_millis() as f64;
+  if now < player.switch_cooldown_expiry {
+      let remaining = player.switch_cooldown_expiry.duration_since(now).as_millis() as f64;
       let total = 500.0; // Total cooldown duration
       let progress = 1.0 - (remaining / total);
       
@@ -276,12 +283,12 @@ pub fn draw_weapon_sprite(game: &Game, buffer: &mut RenderBuffer) -> Result<()> 
   }
 
   // Position weapon at bottom center of screen
-  let start_x = (game.term_size.0 / 2).saturating_sub(weapon_sprite.width as u16 / 2);
-  let start_y = (game.term_size.1 as i32).saturating_sub(weapon_sprite.height as i32).saturating_add(y_offset) as u16;
+  let start_x = (term_size.0 / 2).saturating_sub(weapon_sprite.width as u16 / 2);
+  let start_y = (term_size.1 as i32).saturating_sub(weapon_sprite.height as i32).saturating_add(y_offset) as u16;
 
   for (line_idx, line) in weapon_sprite.lines.iter().enumerate() {
     let y = start_y + line_idx as u16;
-    if y < game.term_size.1 {
+    if y < term_size.1 {
       for (char_idx, character) in line.chars().enumerate() {
         if character != ' ' { // Only draw non-transparent pixels
           let color = if char_idx < weapon_sprite.colors[line_idx].len() {
@@ -435,23 +442,25 @@ fn cast_wall_ray(start_x: f64, start_y: f64, angle: f64, level: &crate::level::L
 }
 
 
+use crate::entity::Transform;
+
 fn project_sprite_to_screen(
-  player: &Entity, 
+  player_transform: &Transform, 
   sprite_entity: &Entity, 
   screen_width: u16, 
   screen_height: u16, 
   fov: f64
 ) -> Option<SpriteProjection> {
   // Calculate distance and angle from player to sprite
-  let dx = sprite_entity.transform.x - player.transform.x;
-  let dy = sprite_entity.transform.y - player.transform.y;
+  let dx = sprite_entity.transform.x - player_transform.x;
+  let dy = sprite_entity.transform.y - player_transform.y;
   let distance = (dx * dx + dy * dy).sqrt();
   
   if distance < 0.1 { return None; } // Too close
   
   // Calculate angle from player to sprite
   let sprite_angle = dy.atan2(dx).to_degrees();
-  let mut relative_angle = sprite_angle - player.transform.angle;
+  let mut relative_angle = sprite_angle - player_transform.angle;
   
   // Normalize angle to [-180, 180]
   while relative_angle > 180.0 { relative_angle -= 360.0; }

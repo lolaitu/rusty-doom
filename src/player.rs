@@ -12,6 +12,7 @@ pub struct Player {
     pub current_weapon: usize,
     pub switch_cooldown_expiry: Instant,
     pub kills: u32,
+    pub transform: crate::entity::Transform,
 }
 
 impl Player {
@@ -25,6 +26,7 @@ impl Player {
             current_weapon: 0,
             switch_cooldown_expiry: Instant::now(),
             kills: 0,
+            transform: crate::entity::Transform::new(3.5, 3.5, 0.0),
         })
     }
 

@@ -2,9 +2,10 @@
 projectiles*/
 
 use std::io::Result;
+use serde::{Serialize, Deserialize};
 
 // structure that stores coordinates of the entity
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Transform {
     pub x: f64,
     pub y: f64,
@@ -18,21 +19,22 @@ impl Transform {
 }
 
 // enum of the entities types
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum EntityType {
     Player,
     Enemy,
     Projectile,
 }
 
-pub const PLAYER_SPEED: f64 = 0.2;
+pub const PLAYER_SPEED: f64 = 3.0;
+pub const PLAYER_ROTATION_SPEED: f64 = 50.0;
 pub const ENEMY_SPEED: f64 = 0.1;
 pub const PROJECTILE_SPEED: f64 = 10.0;
 pub const PLAYER_HEALTH: i32 = 100;
 pub const ENEMY_HEALTH: i32 = 50;
 pub const PROJECTILE_HEALTH: i32 = 1;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum EntityState {
     Idle,
     Hit,
@@ -41,7 +43,7 @@ pub enum EntityState {
 }
 
 // structure that stores entities stats
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Entity {
     pub id: u32,
     pub entity_type: EntityType,
@@ -58,7 +60,7 @@ pub struct Entity {
     pub damage: i32,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum SpriteType {
     None,
     EnemyImp,

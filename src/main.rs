@@ -17,13 +17,12 @@ use std::io::Result;
 // time type to represent span of time
 use std::time::Duration;
 
-mod game;
-use game::Game;
+mod modes;
 
-mod graphics;
-use graphics::RenderBuffer;
-use graphics::draw;
-use graphics::sprites;
+
+pub mod graphics;
+pub mod network;
+
 
 mod common;
 use common::level;
@@ -40,6 +39,8 @@ use weapon::Weapon;
 mod player;
 use player::Player;
 
+use modes::{SoloGame, HostGame, ClientGame, GameMode};
+
 // Main program loop
 fn main() -> Result<()>{
   // Initialize terminal
@@ -47,14 +48,17 @@ fn main() -> Result<()>{
 
   // Load level
   let level = level::Level::debug_1()?;
-  // Create game instance
-  let mut game = Game::new(level)?;
-
-  // Get the terminal size
-  let (w, h) = terminal::size()?;
-  // Create a render buffer
-  let mut render_buffer = RenderBuffer::new(w, h);
   
+  // Parse arguments
+  let args: Vec<String> = std::env::args().collect();
+  let mut game: Box<dyn GameMode> = if args.contains(&"--host".to_string()) {
+      Box::new(HostGame::new(level)?)
+  } else if args.contains(&"--client".to_string()) {
+      Box::new(ClientGame::new()?)
+  } else {
+      Box::new(SoloGame::new(level)?)
+  };
+
   let mut input_manager = InputManager::new();
 
   // Main game loop
@@ -72,7 +76,7 @@ fn main() -> Result<()>{
     }
     
     // update the game and check if it is over
-    if game.update(&mut render_buffer, &input_manager)? {
+    if game.update(&input_manager)? {
       break;
     }
   }
