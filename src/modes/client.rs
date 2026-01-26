@@ -56,6 +56,9 @@ impl GameMode for ClientGame {
     fn update(&mut self, input_manager: &InputManager) -> Result<bool> {
         self.client.update(std::time::Duration::from_millis(16));
 
+        // Frame limiting to prevent 100% CPU usage if waiting
+        std::thread::sleep(std::time::Duration::from_millis(1));
+
         // Send Input
         let input = PlayerInput {
             move_forward: input_manager.is_active(Action::MoveForward),

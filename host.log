@@ -1,0 +1,300 @@
+warning: unused imports: `Event`, `KeyCode`, and `KeyModifiers`
+  --> src/main.rs:12:17
+   |
+12 |   event::{self, Event, KeyCode, KeyModifiers},
+   |                 ^^^^^  ^^^^^^^  ^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+warning: unused imports: `KeyEvent`, `self`, and `size`
+ --> src/modes/solo.rs:4:13
+  |
+4 |     event::{self, KeyEvent},
+  |             ^^^^  ^^^^^^^^
+5 |     terminal::{self, size},
+  |                      ^^^^
+
+warning: unused import: `EntityType`
+  --> src/modes/solo.rs:10:29
+   |
+10 | use crate::entity::{Entity, EntityType, SpriteType};
+   |                             ^^^^^^^^^^
+
+warning: unused import: `crate::weapon::Weapon`
+  --> src/modes/solo.rs:11:5
+   |
+11 | use crate::weapon::Weapon;
+   |     ^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `ConnectionConfig`
+ --> src/modes/host.rs:2:26
+  |
+2 | use renet::{RenetServer, ConnectionConfig, ClientId};
+  |                          ^^^^^^^^^^^^^^^^
+
+warning: unused import: `futures::future::BoxFuture`
+ --> src/modes/host.rs:4:5
+  |
+4 | use futures::future::BoxFuture;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `PlayerInput`
+  --> src/modes/host.rs:12:61
+   |
+12 | use crate::common::protocol::{ClientMessage, ServerMessage, PlayerInput};
+   |                                                             ^^^^^^^^^^^
+
+warning: unused import: `crate::network::connection::PROTOCOL_ID`
+  --> src/modes/host.rs:13:5
+   |
+13 | use crate::network::connection::PROTOCOL_ID;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `ConnectionConfig`
+ --> src/modes/client.rs:2:26
+  |
+2 | use renet::{RenetClient, ConnectionConfig};
+  |                          ^^^^^^^^^^^^^^^^
+
+warning: unused import: `futures::future::BoxFuture`
+ --> src/modes/client.rs:4:5
+  |
+4 | use futures::future::BoxFuture;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::modes::solo::SoloGame`
+ --> src/graphics/rendering.rs:8:5
+  |
+8 | use crate::modes::solo::SoloGame;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::weapon::WeaponSprite`
+ --> src/graphics/rendering.rs:9:5
+  |
+9 | use crate::weapon::WeaponSprite;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Sprite`
+  --> src/graphics/rendering.rs:11:50
+   |
+11 | use crate::graphics::sprites::{get_sprite_frame, Sprite};
+   |                                                  ^^^^^^
+
+warning: unnecessary parentheses around block return value
+   --> src/graphics/rendering.rs:436:5
+    |
+436 |     (side_dist_x - delta_dist_x)
+    |     ^                          ^
+    |
+    = note: `#[warn(unused_parens)]` on by default
+help: remove these parentheses
+    |
+436 -     (side_dist_x - delta_dist_x)
+436 +     side_dist_x - delta_dist_x
+    |
+
+warning: unnecessary parentheses around block return value
+   --> src/graphics/rendering.rs:438:5
+    |
+438 |     (side_dist_y - delta_dist_y)
+    |     ^                          ^
+    |
+help: remove these parentheses
+    |
+438 -     (side_dist_y - delta_dist_y)
+438 +     side_dist_y - delta_dist_y
+    |
+
+warning: unused import: `DefaultChannel`
+ --> src/network/connection.rs:2:23
+  |
+2 |     ConnectionConfig, DefaultChannel, RenetClient, RenetServer,
+  |                       ^^^^^^^^^^^^^^
+
+warning: unused imports: `Duration` and `SystemTime`
+ --> src/network/connection.rs:4:17
+  |
+4 | use std::time::{Duration, SystemTime};
+  |                 ^^^^^^^^  ^^^^^^^^^^
+
+warning: unused import: `std::net::UdpSocket`
+ --> src/network/connection.rs:5:5
+  |
+5 | use std::net::UdpSocket;
+  |     ^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::common::entity::Entity`
+ --> src/network/sync.rs:2:5
+  |
+2 | use crate::common::entity::Entity;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+ --> src/network/sync.rs:3:5
+  |
+3 | use std::collections::HashMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::io::Result`
+ --> src/common/entity.rs:4:5
+  |
+4 | use std::io::Result;
+  |     ^^^^^^^^^^^^^^^
+
+warning: unused import: `std::io::Result`
+ --> src/common/world.rs:1:5
+  |
+1 | use std::io::Result;
+  |     ^^^^^^^^^^^^^^^
+
+warning: unused import: `Transform`
+ --> src/common/world.rs:4:41
+  |
+4 | use crate::entity::{Entity, EntityType, Transform, SpriteType};
+  |                                         ^^^^^^^^^
+
+warning: unused import: `crate::level::Level`
+ --> src/common/world.rs:5:5
+  |
+5 | use crate::level::Level;
+  |     ^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::fs::OpenOptions`
+ --> src/common/input.rs:2:5
+  |
+2 | use std::fs::OpenOptions;
+  |     ^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::io::Write`
+ --> src/common/input.rs:3:5
+  |
+3 | use std::io::Write;
+  |     ^^^^^^^^^^^^^^
+
+warning: unused imports: `Entity` and `SpriteType`
+ --> src/common/physics.rs:2:29
+  |
+2 | use crate::common::entity::{Entity, EntityType, EntityState, SpriteType};
+  |                             ^^^^^^                           ^^^^^^^^^^
+
+warning: unused import: `weapon::Weapon`
+  --> src/main.rs:37:5
+   |
+37 | use weapon::Weapon;
+   |     ^^^^^^^^^^^^^^
+
+warning: unused import: `player::Player`
+  --> src/main.rs:40:5
+   |
+40 | use player::Player;
+   |     ^^^^^^^^^^^^^^
+
+warning: variable does not need to be mutable
+  --> src/modes/solo.rs:33:13
+   |
+33 |         let mut term_size = terminal::size()?;
+   |             ----^^^^^^^^^
+   |             |
+   |             help: remove this `mut`
+   |
+   = note: `#[warn(unused_mut)]` on by default
+
+warning: variable does not need to be mutable
+  --> src/modes/solo.rs:34:13
+   |
+34 |         let mut render_buffer = RenderBuffer::new(term_size.0, term_size.1);
+   |             ----^^^^^^^^^^^^^
+   |             |
+   |             help: remove this `mut`
+
+warning: unused variable: `move_speed`
+  --> src/modes/solo.rs:87:13
+   |
+87 |         let move_speed = if input_manager.is_active(Action::Sprint) { 
+   |             ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_move_speed`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `rot_speed`
+  --> src/modes/solo.rs:93:13
+   |
+93 |         let rot_speed = crate::common::entity::PLAYER_ROTATION_SPEED;
+   |             ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_rot_speed`
+
+warning: variable does not need to be mutable
+   --> src/graphics/rendering.rs:376:7
+    |
+376 |   let mut step_x;
+    |       ----^^^^^^
+    |       |
+    |       help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> src/graphics/rendering.rs:387:7
+    |
+387 |   let mut step_y;
+    |       ----^^^^^^
+    |       |
+    |       help: remove this `mut`
+
+warning: unused variable: `render_time`
+  --> src/network/sync.rs:24:31
+   |
+24 |     pub fn interpolate(&self, render_time: f64) -> Option<World> {
+   |                               ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_render_time`
+
+warning: fields `time_of_launch` and `fps_toggle_cooldown` are never read
+  --> src/modes/solo.rs:18:9
+   |
+17 | pub struct SoloGame {
+   |            -------- fields in this struct
+18 |     pub time_of_launch: Instant,
+   |         ^^^^^^^^^^^^^^
+...
+26 |     pub fps_toggle_cooldown: Instant,
+   |         ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: fields `socket` and `runtime` are never read
+  --> src/modes/host.rs:22:9
+   |
+20 | pub struct HostGame {
+   |            -------- fields in this struct
+21 |     pub server: RenetServer,
+22 |     pub socket: WebRtcSocket,
+   |         ^^^^^^
+...
+25 |     pub runtime: tokio::runtime::Runtime,
+   |         ^^^^^^^
+
+warning: fields `socket` and `runtime` are never read
+  --> src/modes/client.rs:18:9
+   |
+16 | pub struct ClientGame {
+   |            ---------- fields in this struct
+17 |     pub client: RenetClient,
+18 |     pub socket: WebRtcSocket,
+   |         ^^^^^^
+19 |     pub world: World,
+20 |     pub runtime: tokio::runtime::Runtime,
+   |         ^^^^^^^
+
+warning: variants `RespawnPlayer` and `None` are never constructed
+  --> src/common/input.rs:20:5
+   |
+7  | pub enum Action {
+   |          ------ variants in this enum
+...
+20 |     RespawnPlayer,
+   |     ^^^^^^^^^^^^^
+...
+24 |     None,
+   |     ^^^^
+   |
+   = note: `Action` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: `rusty_doom` (bin "rusty_doom") generated 40 warnings (run `cargo fix --bin "rusty_doom"` to apply 33 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.11s
+     Running `target/debug/rusty_doom --host`
+[?1049h[?25lError: Custom { kind: Other, error: "Failed to initialize input reader" }

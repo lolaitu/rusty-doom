@@ -26,6 +26,10 @@ impl World {
         id
     }
 
+    pub fn remove_entity(&mut self, id: u32) {
+        self.entities.remove(&id);
+    }
+
     pub fn get_entity_mut(&mut self, id: u32) -> Option<&mut Entity> {
         self.entities.get_mut(&id)
     }
