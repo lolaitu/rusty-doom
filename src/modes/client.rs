@@ -1,7 +1,6 @@
 use std::io::Result;
-use renet::{RenetClient, ConnectionConfig};
+use renet::RenetClient;
 use matchbox_socket::WebRtcSocket;
-use futures::future::BoxFuture;
 use crate::common::world::World;
 use crate::common::level::Level;
 use crate::network::connection::setup_client;
@@ -15,9 +14,9 @@ use crate::player::Player;
 
 pub struct ClientGame {
     pub client: RenetClient,
-    pub socket: WebRtcSocket,
+    pub _socket: WebRtcSocket,
     pub world: World,
-    pub runtime: tokio::runtime::Runtime,
+    pub _runtime: tokio::runtime::Runtime,
     pub render_buffer: RenderBuffer,
     pub term_size: (u16, u16),
     pub player: Player,
@@ -39,9 +38,9 @@ impl ClientGame {
         
         Ok(Self {
             client,
-            socket,
+            _socket: socket,
             world,
-            runtime,
+            _runtime: runtime,
             render_buffer,
             term_size: (w, h),
             player,

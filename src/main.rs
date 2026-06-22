@@ -9,7 +9,7 @@ use crossterm::{
     EnterAlternateScreen,
     LeaveAlternateScreen
   },
-  event::{self, Event, KeyCode, KeyModifiers},
+  event::{self},
 };
 
 // result type for I/O operations
@@ -34,10 +34,8 @@ use input::InputManager;
 use input::Action;
 
 mod weapon;
-use weapon::Weapon;
 
 mod player;
-use player::Player;
 
 use modes::{SoloGame, HostGame, ClientGame, GameMode};
 

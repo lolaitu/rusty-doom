@@ -1,6 +1,4 @@
 use crate::common::world::World;
-use crate::common::entity::Entity;
-use std::collections::HashMap;
 
 pub struct SnapshotInterpolator {
     pub snapshots: Vec<(f64, World)>, // timestamp, world state
@@ -21,7 +19,7 @@ impl SnapshotInterpolator {
         }
     }
 
-    pub fn interpolate(&self, render_time: f64) -> Option<World> {
+    pub fn interpolate(&self, _render_time: f64) -> Option<World> {
         // Find two snapshots surrounding render_time
         // For now, just return the latest for simplicity
         // TODO: Implement actual interpolation

@@ -1,21 +1,17 @@
 use std::io::{Write, Result};
 use std::time::{Duration, Instant};
-use crossterm::{
-    event::{self, KeyEvent},
-    terminal::{self, size},
-};
+use crossterm::terminal::{self};
 use crate::level::Level;
 use crate::player::Player;
 use crate::world::World;
-use crate::entity::{Entity, EntityType, SpriteType};
-use crate::weapon::Weapon;
+use crate::entity::{Entity, SpriteType};
 use crate::graphics::RenderBuffer;
 use crate::graphics::draw;
 use crate::input::{InputManager, Action};
 use crate::common::physics::Physics;
 
 pub struct SoloGame {
-    pub time_of_launch: Instant,
+    pub _time_of_launch: Instant,
     pub time_of_last_loop: Instant,
     pub player: Player,
     pub player_id: u32,
@@ -23,15 +19,15 @@ pub struct SoloGame {
     pub level: Level,
     pub term_size: (u16, u16),
     pub target_fps: u32,
-    pub fps_toggle_cooldown: Instant,
+    pub _fps_toggle_cooldown: Instant,
     pub render_buffer: RenderBuffer,
 }
 
 impl SoloGame {
     pub fn new(level: Level) -> Result<Self> {
         // Initialize render buffer
-        let mut term_size = terminal::size()?;
-        let mut render_buffer = RenderBuffer::new(term_size.0, term_size.1);
+        let term_size = terminal::size()?;
+        let render_buffer = RenderBuffer::new(term_size.0, term_size.1);
 
         let mut world = World::new();
         
@@ -50,7 +46,7 @@ impl SoloGame {
         world.spawn_entity(demon);
 
         Ok(Self {
-        time_of_launch: Instant::now(),
+        _time_of_launch: Instant::now(),
         time_of_last_loop: Instant::now(),
         player,
         player_id: player_id,
@@ -58,7 +54,7 @@ impl SoloGame {
         level,
         term_size,
         target_fps: 30,
-        fps_toggle_cooldown: Instant::now(),
+        _fps_toggle_cooldown: Instant::now(),
         render_buffer,
         })
     }
@@ -84,13 +80,13 @@ impl GameMode for SoloGame {
         self.time_of_last_loop = now;
 
         // Player Movement
-        let move_speed = if input_manager.is_active(Action::Sprint) { 
+        let _move_speed = if input_manager.is_active(Action::Sprint) { 
             crate::common::entity::PLAYER_SPEED * 2.0 
         } else { 
             crate::common::entity::PLAYER_SPEED 
         };
         
-        let rot_speed = crate::common::entity::PLAYER_ROTATION_SPEED;
+        let _rot_speed = crate::common::entity::PLAYER_ROTATION_SPEED;
 
         // Player Movement
         let mut move_speed = if input_manager.is_active(Action::Sprint) { 

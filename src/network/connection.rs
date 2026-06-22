@@ -1,8 +1,6 @@
 use renet::{
-    ConnectionConfig, DefaultChannel, RenetClient, RenetServer,
+    ConnectionConfig, RenetClient, RenetServer,
 };
-use std::time::{Duration, SystemTime};
-use std::net::UdpSocket;
 use matchbox_socket::WebRtcSocket;
 
 pub const PROTOCOL_ID: u64 = 7;

@@ -1,7 +1,6 @@
 /* Class that manages all the world elements : players, enemies, 
 projectiles*/
 
-use std::io::Result;
 use serde::{Serialize, Deserialize};
 
 // structure that stores coordinates of the entity

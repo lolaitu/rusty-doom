@@ -1,8 +1,6 @@
-use std::io::Result;
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
-use crate::entity::{Entity, EntityType, Transform, SpriteType};
-use crate::level::Level;
+use crate::entity::{Entity, EntityType, SpriteType};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct World {

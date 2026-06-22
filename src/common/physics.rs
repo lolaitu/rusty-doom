@@ -1,5 +1,5 @@
 use crate::common::world::World;
-use crate::common::entity::{Entity, EntityType, EntityState, SpriteType};
+use crate::common::entity::{EntityType, EntityState};
 use crate::common::level::Level;
 
 pub struct Physics;

@@ -1,7 +1,6 @@
 use std::io::Result;
-use renet::{RenetServer, ConnectionConfig, ClientId};
+use renet::{RenetServer, ClientId};
 use matchbox_socket::WebRtcSocket;
-use futures::future::BoxFuture;
 use crate::common::world::World;
 use crate::common::physics::Physics;
 use crate::common::level::Level;
@@ -9,8 +8,7 @@ use crate::network::connection::setup_server;
 use crate::input::InputManager;
 use crate::graphics::RenderBuffer;
 use renet::ServerEvent;
-use crate::common::protocol::{ClientMessage, ServerMessage, PlayerInput};
-use crate::network::connection::PROTOCOL_ID;
+use crate::common::protocol::{ClientMessage, ServerMessage};
 
 use crate::graphics::draw;
 use crossterm::terminal;
@@ -19,10 +17,10 @@ use crate::player::Player;
 
 pub struct HostGame {
     pub server: RenetServer,
-    pub socket: WebRtcSocket,
+    pub _socket: WebRtcSocket,
     pub world: World,
     pub level: Level,
-    pub runtime: tokio::runtime::Runtime,
+    pub _runtime: tokio::runtime::Runtime,
     pub render_buffer: RenderBuffer,
     pub term_size: (u16, u16),
     pub player: Player,
@@ -51,10 +49,10 @@ impl HostGame {
         
         Ok(Self {
             server,
-            socket,
+            _socket: socket,
             world,
             level,
-            runtime,
+            _runtime: runtime,
             render_buffer,
             term_size: (w, h),
             player,

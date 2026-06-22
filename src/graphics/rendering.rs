@@ -5,10 +5,8 @@ use crossterm::{
 };
 use rayon::prelude::*;
 
-use crate::modes::solo::SoloGame;
-use crate::weapon::WeaponSprite;
 use crate::entity::{Entity, SpriteType, EntityState};
-use crate::graphics::sprites::{get_sprite_frame, Sprite};
+use crate::graphics::sprites::get_sprite_frame;
 
 #[derive(Debug, Clone)]
 pub struct SpriteProjection {
@@ -373,7 +371,7 @@ fn cast_wall_ray(start_x: f64, start_y: f64, angle: f64, level: &crate::level::L
   let delta_dist_x = if ray_dir_x == 0.0 { 1e30 } else { (1.0 / ray_dir_x).abs() };
   let delta_dist_y = if ray_dir_y == 0.0 { 1e30 } else { (1.0 / ray_dir_y).abs() };
 
-  let mut step_x;
+  let step_x;
   let mut side_dist_x;
   
   if ray_dir_x < 0.0 {
@@ -384,7 +382,7 @@ fn cast_wall_ray(start_x: f64, start_y: f64, angle: f64, level: &crate::level::L
     side_dist_x = (map_x as f64 + 1.0 - start_x) * delta_dist_x;
   }
 
-  let mut step_y;
+  let step_y;
   let mut side_dist_y;
   
   if ray_dir_y < 0.0 {
@@ -433,9 +431,9 @@ fn cast_wall_ray(start_x: f64, start_y: f64, angle: f64, level: &crate::level::L
 
   // Calculate distance projected on camera direction (Euclidean distance would give fisheye effect!)
   let perp_wall_dist = if side == 0 {
-    (side_dist_x - delta_dist_x)
+    side_dist_x - delta_dist_x 
   } else {
-    (side_dist_y - delta_dist_y)
+    side_dist_y - delta_dist_y 
   };
 
   (perp_wall_dist, wall_type)

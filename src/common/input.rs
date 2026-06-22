@@ -1,6 +1,4 @@
 use std::collections::HashSet;
-use std::fs::OpenOptions;
-use std::io::Write;
 use device_query::{DeviceQuery, DeviceState, Keycode};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -17,10 +15,12 @@ pub enum Action {
     SwitchWeapon2,
     SwitchWeapon3,
     RespawnEnemies,
+    #[allow(dead_code)]
     RespawnPlayer,
     ToggleFPS,
     Sprint,
     Quit,
+    #[allow(dead_code)]
     None,
 }
 
